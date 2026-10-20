@@ -1,0 +1,16 @@
+{
+  "name": "Bayacao Registro de Campo",
+  "short_name": "Bayacao Campo",
+  "description": "Registro de datos de campo sin señal: conteo de mazorcas, PSM, clima y baba-seco.",
+  "lang": "es-DO",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#452007",
+  "background_color": "#F7F1E8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

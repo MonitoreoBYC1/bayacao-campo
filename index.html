@@ -1,0 +1,1825 @@
+<!doctype html>
+<html lang="es-DO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#452007">
+<meta name="description" content="Registro de datos de campo de Bayacao, funciona sin señal.">
+<title>Bayacao Campo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+/* ===== Paleta corporativa Grupo Bayacao ===== */
+:root{
+  --choco:#452007; --cacao:#4E3227; --dorado:#B8924A; --verde:#5B7F3A;
+  --crema:#F7F1E8; --arena:#E6D9C3; --texto:#3A3A3A;
+  --ok:#2E7D32; --amb:#F2A900; --err:#C62828; --blanco:#FFFFFF;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--crema);color:var(--texto);font-family:Calibri,Arial,sans-serif;font-size:17px;line-height:1.35;-webkit-text-size-adjust:100%;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+/* Encabezado */
+header.top{position:sticky;top:0;z-index:20;background:var(--choco);color:var(--blanco);display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top))}
+header.top .home{background:none;border:0;color:var(--blanco);font-weight:700;font-size:17px;padding:6px 4px;min-height:44px;text-align:left;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top .home b{letter-spacing:.06em}
+.net{font-size:14px;font-weight:700;border-radius:999px;padding:6px 10px;white-space:nowrap;border:2px solid var(--blanco)}
+.net.on{background:var(--verde);border-color:var(--verde)}
+.net.off{background:var(--blanco);color:var(--choco)}
+#banner{display:none;background:var(--dorado);color:var(--choco);font-weight:700;padding:10px 12px;border:0;width:100%;text-align:left;min-height:48px}
+#banner.show{display:block}
+main{max-width:640px;margin:0 auto;padding:12px 12px 200px}
+footer.pie{text-align:center;font-size:13px;color:var(--cacao);padding:8px 12px 190px}
+h2.ttl{color:var(--choco);font-size:22px;margin:4px 0 10px}
+h3{color:var(--cacao);font-size:18px;margin:0 0 10px}
+h4{color:var(--cacao);font-size:16px;margin:14px 0 8px;border-top:1px solid var(--arena);padding-top:10px}
+.card{background:var(--blanco);border:1px solid var(--arena);border-radius:12px;padding:14px;margin-bottom:12px}
+.muted{color:var(--cacao);font-size:14px}
+.small{font-size:14px}
+/* Campos */
+.fld{display:block;margin-bottom:10px;min-width:0}
+.fld>span{display:block;font-weight:700;font-size:15px;margin-bottom:4px;color:var(--cacao)}
+.fld input,.fld select,.fld textarea{width:100%;min-height:48px;background:var(--arena);border:2px solid var(--arena);border-radius:8px;padding:8px 10px;font-size:18px;color:var(--texto)}
+.fld textarea{min-height:110px;font-size:16px}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--dorado);background:var(--blanco)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid-st{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 10px}
+/* Contadores − / + */
+.stepper{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:4px;align-items:stretch}
+.stepper input{text-align:center;font-weight:700;font-size:20px;padding:4px;min-width:0}
+.stp{min-height:48px;border-radius:8px;border:2px solid var(--choco);background:var(--blanco);color:var(--choco);font-size:26px;font-weight:700;line-height:1;padding:0}
+.stp:active{background:var(--choco);color:var(--blanco)}
+/* Botones de selección única / múltiple */
+.seg,.chips{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.chips button{min-height:48px;min-width:48px;padding:6px 12px;border-radius:8px;border:2px solid var(--arena);background:var(--arena);font-size:16px;font-weight:700;color:var(--texto)}
+.seg button.sel,.chips button.sel{background:var(--choco);border-color:var(--choco);color:var(--blanco)}
+.chips button.sel::before{content:"✓ "}
+/* Botones */
+.btn{min-height:48px;border-radius:10px;padding:10px 16px;font-weight:700;font-size:17px;border:2px solid var(--choco)}
+.btn.pri{background:var(--choco);color:var(--blanco)}
+.btn.pri.warn{background:var(--amb);border-color:var(--amb);color:var(--texto)}
+.btn.sec{background:var(--blanco);color:var(--choco)}
+.btn.gold{background:var(--dorado);border-color:var(--dorado);color:var(--choco)}
+.btn.danger{background:var(--blanco);border-color:var(--err);color:var(--err)}
+.btn.sm{min-height:44px;padding:6px 12px;font-size:15px}
+.btn.full{width:100%}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row>.grow{flex:1}
+/* Barra inferior fija */
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--blanco);border-top:3px solid var(--dorado);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+#bar:empty{display:none}
+#bar .btns{display:flex;gap:8px;max-width:640px;margin:0 auto}
+#bar .btns .btn{flex:1}
+#bar .btns .btn.pri{flex:2}
+#msgs{max-width:640px;margin:0 auto;max-height:38vh;overflow:auto}
+.msg{border-left:6px solid;padding:8px 10px;margin-bottom:6px;border-radius:6px;font-weight:700;font-size:15px;background:var(--crema)}
+.msg.err{border-color:var(--err);color:var(--err)}
+.msg.warn{border-color:var(--amb);color:var(--texto)}
+.msg.ok{border-color:var(--ok);color:var(--ok)}
+.msg .btn{margin-top:6px}
+/* Inicio */
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.tile{background:var(--blanco);border:2px solid var(--arena);border-radius:14px;padding:14px 12px;min-height:118px;text-align:left;display:flex;flex-direction:column;justify-content:space-between}
+.tile b{color:var(--choco);font-size:18px;line-height:1.2}
+.tile small{color:var(--cacao);font-size:14px}
+.tile .bdg{align-self:flex-start}
+.tile.clima{border-color:var(--verde)}
+.tile.clima b{color:var(--verde)}
+.bdg{display:inline-block;border-radius:999px;padding:2px 8px;font-size:13px;font-weight:700;background:var(--arena);color:var(--choco)}
+.bdg.gold{background:var(--dorado);color:var(--choco)}
+.bdg.ok{background:var(--verde);color:var(--blanco)}
+.bdg.warn{background:var(--amb);color:var(--texto)}
+.bdg.err{background:var(--err);color:var(--blanco)}
+/* Listas */
+.list{list-style:none;margin:0;padding:0}
+.list li{border-top:1px solid var(--arena);padding:10px 0;display:flex;gap:8px;align-items:center}
+.list li:first-child{border-top:0}
+.list .info{flex:1;min-width:0}
+.list .info b{display:block;color:var(--choco);overflow-wrap:anywhere}
+.list .info small{color:var(--cacao);font-size:14px}
+.kpi{display:flex;gap:10px;flex-wrap:wrap}
+.kpi div{flex:1;min-width:90px;background:var(--crema);border-left:5px solid var(--dorado);border-radius:8px;padding:8px}
+.kpi b{display:block;font-size:22px;color:var(--choco)}
+.kpi span{font-size:13px;color:var(--cacao)}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+.tabs button{flex:1;min-height:48px;border-radius:10px;border:2px solid var(--choco);background:var(--blanco);color:var(--choco);font-weight:700;padding:6px 8px;white-space:nowrap}
+.tabs button.sel{background:var(--choco);color:var(--blanco)}
+.pod{border:2px solid var(--arena);border-radius:10px;padding:10px;margin-bottom:10px}
+.pod.venc{border-color:var(--amb)}
+.pod-h b{color:var(--choco)}
+.pod-h small{display:block;color:var(--cacao)}
+.alerta{background:var(--err);color:var(--blanco);font-weight:700;padding:12px;border-radius:10px;margin-bottom:12px}
+.editing{background:var(--dorado);color:var(--choco);font-weight:700;padding:8px 10px;border-radius:8px;margin-bottom:10px}
+.live{background:var(--crema);border-left:5px solid var(--verde);padding:8px 10px;border-radius:8px;font-weight:700;margin-top:10px}
+.calc{font-size:22px;font-weight:700;color:var(--choco)}
+/* Toast y modal */
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:150px;z-index:60;background:var(--cacao);color:var(--blanco);padding:12px 16px;border-radius:10px;font-weight:700;max-width:92vw;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none;text-align:center}
+#toast.show{display:block}
+#toast.ok{background:var(--verde)}
+#toast.err{background:var(--err)}
+.ovl{position:fixed;inset:0;z-index:80;background:rgba(58,58,58,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg{background:var(--blanco);border-radius:14px;padding:16px;width:100%;max-width:420px;border-top:6px solid var(--choco)}
+.dlg h3{margin-top:0}
+.dlg .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.dlg .btns .btn{flex:1}
+.dlg.danger{border-top-color:var(--err)}
+.hidden{display:none !important}
+/* v1.1 · Ficha del árbol y límites */
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.seg.col{flex-direction:column}
+.seg.col button{text-align:left;width:100%}
+.tile.wide{grid-column:1/-1;min-height:84px}
+.sug{border:2px solid var(--dorado);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--crema)}
+.sug b{color:var(--choco);font-size:18px}
+.sug small{display:block;color:var(--cacao);font-size:14px;overflow-wrap:anywhere}
+.fbdg{margin:0 0 10px}
+.fbdg .btn{width:100%;text-align:left}
+.fbdg .btn.ok{background:var(--crema);border-color:var(--verde);color:var(--verde)}
+@media (max-width:370px){ .grid2{grid-template-columns:1fr} .home-grid{gap:8px} }
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="home" id="hdrHome" aria-label="Ir al inicio"><b>BAYACAO</b> · Registro de campo</button>
+  <span class="net off" id="net">Sin señal</span>
+</header>
+<button id="banner" type="button"></button>
+<main id="main"><p class="muted">Cargando…</p></main>
+<footer class="pie">Grupo Bayacao – Uso interno · v1.1</footer>
+<div id="bar"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="./xlsx.full.min.js"></script>
+<script>
+'use strict';
+/* =====================================================================
+   Bayacao · Registro de campo (PWA sin conexión) — v1.1
+   Un solo archivo: utilidades, base de datos, módulos, exportación.
+   ===================================================================== */
+
+const APP_VERSION = '1.1';
+const DATA_STORES = ['conteo', 'pods', 'visits', 'fenologia', 'clima', 'lotes', 'fichas'];
+const DB_VERSION = 2; // v1.1: nuevo almacén «fichas» (los existentes no se tocan)
+const KEY_STORES = ['settings', 'drafts'];
+
+// ---------- Listas fijas ----------
+const DEF_PARCELAS = [];
+for (let i = 1; i <= 16; i++) DEF_PARCELAS.push('P01.' + String(i).padStart(2, '0'));
+for (let i = 1; i <= 9; i++) DEF_PARCELAS.push('P02.' + String(i).padStart(2, '0'));
+const DEF_MATERIALES = ['ICS-95', 'ICS-1', 'ML-105', 'ML-106', 'UF-677', 'UF-221', 'UF-613', 'Semilla/híbrido', 'Desconocido', 'Otro'];
+const DEF_ESTACIONES = ['Finca Bayaguana – Pluviómetro 1'];
+const CAUSAS_MUERTE = ['Cherelle wilt', 'Mazorca negra', 'Ratas', 'Carpintero/pájaros', 'Insectos', 'Sospecha de monilia', 'Caída/arrancada', 'Otra'];
+const MONILIA = 'Sospecha de monilia';
+const EVENTOS = [['viento', 'Viento fuerte'], ['tormenta', 'Tormenta'], ['sequia', 'Sequía visible'], ['inundacion', 'Inundación']];
+const ESTADOS_POD = ['Viva', 'Muerta', 'Cosechada'];
+// Clases de tamaño: límites configurables en Ajustes (límite inferior 2.5 cm fijo)
+const LIM_MIN = 2.5;
+const DEF_LIMITES = [7, 14, 21];
+const LIM_V10 = [2.5, 7, 14, 21]; // límites de la v1.0 (registros sin «limites» guardado)
+let CLASES = [], SANAS = [];
+const fmtCm = n => String(Math.round(Number(n) * 10) / 10);
+const curLim = () => [LIM_MIN, ...S.limites];
+const limStr = l => (l || LIM_V10).map(fmtCm).join('/');
+function applyLimits() {
+  const [a, b, c] = (S.limites && S.limites.length === 3) ? S.limites : DEF_LIMITES;
+  const a1 = Math.round((a + 0.1) * 10) / 10, b1 = Math.round((b + 0.1) * 10) / 10;
+  CLASES = [['MP', `${fmtCm(LIM_MIN)}–${fmtCm(a)} cm`, LIM_MIN, a], ['P', `${fmtCm(a1)}–${fmtCm(b)} cm`, a1, b], ['M', `${fmtCm(b1)}–${fmtCm(c)} cm`, b1, c], ['G', `>${fmtCm(c)} cm`, c + 0.01, 40]];
+  SANAS = [['mp', 'MP ' + CLASES[0][1]], ['p', 'P ' + CLASES[1][1]], ['m', 'M ' + CLASES[2][1]], ['g', 'G ' + CLASES[3][1]], ['mad', 'Maduras / pintonas']];
+}
+const DANADAS = [['negra', 'Mazorca negra'], ['ratas', 'Ratas'], ['pajaros', 'Carpintero / pájaros'], ['insectos', 'Insectos'], ['otra', 'Otra']];
+const ESC_CHER = [[0, '0 Ninguno'], [1, '1 Pocos (1–10)'], [2, '2 Muchos (>10)']];
+const FENO = [
+  { k: 'cherSanos', l: 'Cherelles sanos (<2.5 cm)', o: ESC_CHER },
+  { k: 'cherMarch', l: 'Cherelles marchitos', o: ESC_CHER },
+  { k: 'flor', l: 'Floración', o: [[0, '0 Nada'], [1, '1 Poca'], [2, '2 Media'], [3, '3 Abundante']] },
+  { k: 'brot', l: 'Brotación nueva', o: [[1, 'Sí'], [0, 'No']] },
+  { k: 'defol', l: 'Defoliación', o: [[0, '0 Ninguna'], [1, '1 Leve'], [2, '2 Moderada'], [3, '3 Severa']] },
+  { k: 'muerteReg', l: 'Síntomas de muerte regresiva', o: [[1, 'Sí'], [0, 'No']] },
+  { k: 'vigor', l: 'Vigor', o: [[1, '1 Bajo'], [2, '2 Medio'], [3, '3 Alto']] }
+];
+const DIAS_VENCIDA = 16;
+const CINTAS = ['Rojo', 'Azul', 'Amarillo', 'Blanco', 'Verde', 'Negro', 'Naranja', 'Morado', 'Otro'];
+
+// ---------- Utilidades ----------
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const pad = (n, l = 2) => String(n).padStart(l, '0');
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function isoLocal(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function today() { return isoLocal(new Date()); }
+function addDays(iso, n) { const [y, m, d] = iso.split('-').map(Number); return isoLocal(new Date(y, m - 1, d + n)); }
+function fmtD(iso) { if (!iso) return ''; const [y, m, d] = String(iso).slice(0, 10).split('-'); return `${d}/${m}/${y}`; }
+function fmtDT(iso) { if (!iso) return ''; const d = new Date(iso); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function daysSince(iso) {
+  if (!iso) return 0;
+  const [y, m, d] = iso.split('-').map(Number); const t = new Date();
+  return Math.round((Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()) - Date.UTC(y, m - 1, d)) / 864e5);
+}
+function excelSerial(iso) { const [y, m, d] = iso.split('-').map(Number); return (Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 864e5; }
+function pnum(v) { // número o null (vacío) o NaN (inválido); acepta coma decimal
+  if (v === null || v === undefined) return null;
+  const s = String(v).trim().replace(',', '.'); if (s === '') return null;
+  if (!/^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN; // rechaza 0x10, 1e2, letras
+  const n = Number(s); return Number.isFinite(n) ? n : NaN;
+}
+function segNum(v) { return (v === '' || v === null || v === undefined) ? null : Number(v); }
+function nz(v) { return v === null || v === undefined ? '' : v; }
+function uuid() {
+  try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) { /* respaldo */ }
+  const b = new Uint8Array(16);
+  try { crypto.getRandomValues(b); } catch (e) { for (let i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256); }
+  b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+function clone(o) { return o === undefined ? undefined : JSON.parse(JSON.stringify(o)); }
+function sumKeys(r, keys) { return keys.reduce((a, k) => a + (Number(r[k]) || 0), 0); }
+const sanasDe = r => sumKeys(r, SANAS.map(x => x[0]));
+const danadasDe = r => sumKeys(r, DANADAS.map(x => x[0]));
+
+// ---------- Base de datos (IndexedDB con respaldo en memoria) ----------
+const DB = {
+  db: null, mem: null,
+  async open() {
+    try {
+      this.db = await new Promise((res, rej) => {
+        const r = indexedDB.open('bayacao_campo', DB_VERSION);
+        r.onupgradeneeded = () => {
+          // Solo crea los almacenes que faltan: los datos existentes nunca se tocan
+          const d = r.result;
+          DATA_STORES.forEach(s => { if (!d.objectStoreNames.contains(s)) d.createObjectStore(s, { keyPath: 'id' }); });
+          KEY_STORES.forEach(s => { if (!d.objectStoreNames.contains(s)) d.createObjectStore(s, { keyPath: 'key' }); });
+        };
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+        r.onblocked = () => rej(new Error('Base de datos bloqueada'));
+      });
+    } catch (e) {
+      console.warn('IndexedDB no disponible, usando memoria:', e);
+      this.mem = {}; [...DATA_STORES, ...KEY_STORES].forEach(s => { this.mem[s] = new Map(); });
+    }
+  },
+  keyOf(store, o) { return KEY_STORES.includes(store) ? o.key : o.id; },
+  _tx(store, mode, fn) {
+    return new Promise((res, rej) => {
+      try {
+        const t = this.db.transaction(store, mode); const st = t.objectStore(store);
+        let out; const r = fn(st);
+        if (r && 'onsuccess' in r) r.onsuccess = () => { out = r.result; };
+        t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+      } catch (e) { rej(e); }
+    });
+  },
+  get(store, key) { if (this.mem) return Promise.resolve(clone(this.mem[store].get(key))); return this._tx(store, 'readonly', s => s.get(key)); },
+  all(store) { if (this.mem) return Promise.resolve(Array.from(this.mem[store].values()).map(clone)); return this._tx(store, 'readonly', s => s.getAll()).then(r => r || []); },
+  put(store, o) { if (this.mem) { this.mem[store].set(this.keyOf(store, o), clone(o)); return Promise.resolve(); } return this._tx(store, 'readwrite', s => s.put(o)); },
+  putMany(store, arr) {
+    if (!arr.length) return Promise.resolve();
+    if (this.mem) { arr.forEach(o => this.mem[store].set(this.keyOf(store, o), clone(o))); return Promise.resolve(); }
+    return this._tx(store, 'readwrite', s => { arr.forEach(o => s.put(o)); return null; });
+  },
+  del(store, key) { if (this.mem) { this.mem[store].delete(key); return Promise.resolve(); } return this._tx(store, 'readwrite', s => s.delete(key)); },
+  delMany(store, keys) {
+    if (!keys.length) return Promise.resolve();
+    if (this.mem) { keys.forEach(k => this.mem[store].delete(k)); return Promise.resolve(); }
+    return this._tx(store, 'readwrite', s => { keys.forEach(k => s.delete(k)); return null; });
+  }
+};
+
+// ---------- Ajustes ----------
+let S = {}; // configuración en memoria
+async function loadSettings() {
+  let cfg = null;
+  try { cfg = await DB.get('settings', 'cfg'); } catch (e) { console.warn(e); }
+  S = Object.assign({
+    key: 'cfg', registrador: '', dispositivo: '', parcelas: DEF_PARCELAS.slice(), materiales: DEF_MATERIALES.slice(),
+    estaciones: DEF_ESTACIONES.slice(), ultimaRonda: '', ultimoMaterial: '', ultimaEstacion: '', ultimaCinta: '', ultimaExport: null,
+    limites: DEF_LIMITES.slice()
+  }, cfg || {});
+  if (!Array.isArray(S.limites) || S.limites.length !== 3 || !S.limites.every(Number.isFinite)) S.limites = DEF_LIMITES.slice();
+  applyLimits();
+  // Migración v1.1: agregar UF-613 una sola vez (respeta las ediciones del usuario)
+  if (!S.migUF613) {
+    if (!S.materiales.includes('UF-613')) {
+      const i = S.materiales.indexOf('UF-221');
+      if (i >= 0) S.materiales.splice(i + 1, 0, 'UF-613'); else S.materiales.push('UF-613');
+    }
+    S.migUF613 = true;
+    if (cfg) await saveSettings();
+  }
+  if (!S.dispositivo) {
+    const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let id = '';
+    for (let i = 0; i < 5; i++) id += a[Math.floor(Math.random() * a.length)];
+    S.dispositivo = 'D' + id;
+    await saveSettings();
+  }
+}
+async function saveSettings() { try { await DB.put('settings', S); } catch (e) { console.warn(e); toast('No se pudo guardar la configuración', 'err'); } }
+
+// Marca de auditoría en cada registro
+function stamp(rec) {
+  const now = new Date().toISOString();
+  if (!rec.id) { rec.id = uuid(); rec.creado = now; rec.registrador = S.registrador; rec.dispositivo = S.dispositivo; }
+  rec.modificado = now; rec.exportado = false; rec.fechaExport = null;
+  return rec;
+}
+
+// ---------- Interfaz: toast, modal, mensajes ----------
+let toastT = null;
+function toast(msg, kind = '') {
+  const t = $('#toast'); t.textContent = msg; t.className = 'show ' + kind;
+  clearTimeout(toastT); toastT = setTimeout(() => { t.className = ''; }, 2600);
+}
+// Diálogo genérico. buttons: [{label, val, cls}]; input: {placeholder}
+function modal({ title, body = '', buttons = [{ label: 'Aceptar', val: true, cls: 'pri' }], input = null, danger = false }) {
+  return new Promise(res => {
+    const o = document.createElement('div'); o.className = 'ovl';
+    o.innerHTML = `<div class="dlg ${danger ? 'danger' : ''}" role="dialog" aria-modal="true"><h3>${esc(title)}</h3><div>${body}</div>
+      ${input ? `<div class="fld" style="margin-top:10px"><input id="dlgIn" autocomplete="off" placeholder="${esc(input.placeholder || '')}" value="${esc(input.value || '')}"></div>` : ''}
+      <div class="btns">${buttons.map((b, i) => `<button class="btn ${b.cls || 'sec'}" data-i="${i}" type="button">${esc(b.label)}</button>`).join('')}</div></div>`;
+    document.body.appendChild(o);
+    const inp = $('#dlgIn', o); if (inp) setTimeout(() => inp.focus(), 50);
+    o.addEventListener('click', e => {
+      const b = e.target.closest('button[data-i]'); if (!b) return;
+      const btn = buttons[Number(b.dataset.i)];
+      o.remove(); res(input ? { val: btn.val, text: inp.value } : btn.val);
+    });
+  });
+}
+const confirmar = (title, body, okLabel = 'Sí', danger = false) =>
+  modal({ title, body: `<p>${body}</p>`, danger, buttons: [{ label: 'Cancelar', val: false, cls: 'sec' }, { label: okLabel, val: true, cls: danger ? 'danger' : 'pri' }] });
+
+// Validación: errores (rojo, bloquean) y advertencias (ámbar ⚠, requieren segundo toque)
+let pendingWarn = null;
+function renderMsgs(E, W) {
+  const box = $('#msgs'); if (!box) return;
+  box.innerHTML = E.map(m => `<div class="msg err">✖ ${esc(m)}</div>`).join('') +
+    W.map((w, i) => `<div class="msg warn">⚠ ${esc(w.msg)}${w.action ? `<br><button type="button" class="btn sec sm" data-wa="${i}">${esc(w.action.label)}</button>` : ''}</div>`).join('');
+  $$('[data-wa]', box).forEach(b => b.addEventListener('click', () => { const w = W[Number(b.dataset.wa)]; clearMsgs(); w.action.fn(); }));
+}
+function clearMsgs() { const b = $('#msgs'); if (b) b.innerHTML = ''; pendingWarn = null; resetSaveBtn(); }
+function resetSaveBtn() { const b = $('#btnSave'); if (b) { b.textContent = b.dataset.label; b.classList.remove('warn'); } }
+function gate(E, W) {
+  renderMsgs(E, W);
+  if (E.length) { pendingWarn = null; resetSaveBtn(); toast('Corrige los campos en rojo', 'err'); return false; }
+  if (W.length) {
+    const sig = W.map(w => w.msg).join('|');
+    if (pendingWarn !== sig) {
+      pendingWarn = sig; const b = $('#btnSave');
+      if (b) { b.textContent = '⚠ Confirmar y guardar'; b.classList.add('warn'); }
+      return false;
+    }
+  }
+  pendingWarn = null; $('#msgs').innerHTML = ''; resetSaveBtn();
+  return true;
+}
+function vInt(E, val, label, min, max, req) {
+  const n = pnum(val);
+  if (n === null) { if (req) E.push(`${label}: obligatorio`); return null; }
+  if (Number.isNaN(n) || !Number.isInteger(n) || n < min || n > max) { E.push(`${label}: entero entre ${min} y ${max}`); return null; }
+  return n;
+}
+function vDec(E, val, label, min, max, req) {
+  const n = pnum(val);
+  if (n === null) { if (req) E.push(`${label}: obligatorio`); return null; }
+  if (Number.isNaN(n) || n < min || n > max) { E.push(`${label}: entre ${min} y ${max}`); return null; }
+  return n;
+}
+
+// ---------- Componentes de formulario ----------
+function fText(name, label, ph = '', extra = '') { return `<div class="fld"><span>${label}</span><input name="${name}" placeholder="${esc(ph)}" autocomplete="off" ${extra}></div>`; }
+function fDate(name, label) { return `<div class="fld"><span>${label}</span><input type="date" name="${name}"></div>`; }
+function fDec(name, label, ph = '') { return `<div class="fld"><span>${label}</span><input name="${name}" inputmode="decimal" placeholder="${esc(ph)}" autocomplete="off"></div>`; }
+function fSelect(name, label, opts, first = '— Elegir —') {
+  return `<div class="fld"><span>${label}</span><select name="${name}"><option value="">${esc(first)}</option>${opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>`;
+}
+function stepper(name, label, min = 0, max = 300) {
+  return `<div class="fld"><span>${label}</span><div class="stepper"><button type="button" class="stp" data-step="-1" aria-label="Restar">−</button><input name="${name}" inputmode="numeric" pattern="[0-9]*" data-min="${min}" data-max="${max}" autocomplete="off"><button type="button" class="stp" data-step="1" aria-label="Sumar">+</button></div></div>`;
+}
+function seg(name, label, opts) { return `<div class="fld"><span>${label}</span><div class="seg" data-name="${name}">${opts.map(([v, l]) => `<button type="button" data-val="${esc(v)}">${esc(l)}</button>`).join('')}</div></div>`; }
+function chips(name, label, opts) { return `<div class="fld"><span>${label}</span><div class="chips" data-name="${name}">${opts.map(([v, l]) => `<button type="button" data-val="${esc(v)}">${esc(l)}</button>`).join('')}</div></div>`; }
+const fenoHTML = () => FENO.map(f => seg(f.k, f.l, f.o)).join('');
+
+// Lee todos los valores de un contenedor
+function getVals(root) {
+  const o = {};
+  $$('input[name],select[name],textarea[name]', root).forEach(el => { o[el.name] = el.type === 'checkbox' ? el.checked : el.value; });
+  $$('.seg[data-name]', root).forEach(g => { const s = $('button.sel', g); o[g.dataset.name] = s ? s.dataset.val : ''; });
+  $$('.chips[data-name]', root).forEach(g => { o[g.dataset.name] = $$('button.sel', g).map(b => b.dataset.val); });
+  return o;
+}
+// Escribe valores en un contenedor (sin disparar eventos)
+function setVals(root, obj) {
+  Object.entries(obj || {}).forEach(([k, v]) => {
+    const el = root.querySelector(`[name="${k}"]`);
+    if (el) {
+      if (el.type === 'checkbox') el.checked = !!v;
+      else {
+        const val = v === null || v === undefined ? '' : String(v);
+        if (el.tagName === 'SELECT' && val && !$$('option', el).some(op => op.value === val)) {
+          const op = document.createElement('option'); op.value = val; op.textContent = val; el.appendChild(op);
+        }
+        el.value = val;
+      }
+      return;
+    }
+    const g = root.querySelector(`.seg[data-name="${k}"]`);
+    if (g) { $$('button', g).forEach(b => b.classList.toggle('sel', v !== null && v !== undefined && v !== '' && b.dataset.val === String(v))); return; }
+    const c = root.querySelector(`.chips[data-name="${k}"]`);
+    if (c) { const arr = Array.isArray(v) ? v.map(String) : []; $$('button', c).forEach(b => b.classList.toggle('sel', arr.includes(b.dataset.val))); }
+  });
+}
+
+// ---------- Contexto de pantalla, borradores y eventos globales ----------
+let ctx = {}; // { draftKey, draft():obj, onChange(name) }
+let draftT = null;
+async function saveDraft() {
+  if (!ctx.draftKey || !ctx.draft) return;
+  try { await DB.put('drafts', { key: ctx.draftKey, data: ctx.draft(), t: Date.now() }); } catch (e) { console.warn(e); }
+}
+async function loadDraft(key) { try { const d = await DB.get('drafts', key); return d ? d.data : null; } catch (e) { return null; } }
+async function dropDraft(key) { try { await DB.del('drafts', key); } catch (e) { /* nada */ } }
+function formChanged(name) {
+  if (pendingWarn || ($('#msgs') && $('#msgs').innerHTML)) clearMsgs();
+  clearTimeout(draftT); draftT = setTimeout(saveDraft, 400);
+  if (ctx.onChange) ctx.onChange(name || '');
+}
+function bindGlobalEvents() {
+  const main = $('#main');
+  // 'input' para campos de texto/fecha; 'change' solo para listas (evita disparar dos veces)
+  main.addEventListener('input', e => { if (e.target.name && e.target.tagName !== 'SELECT') formChanged(e.target.name); });
+  main.addEventListener('change', e => { if (e.target.name && e.target.tagName === 'SELECT') formChanged(e.target.name); });
+  main.addEventListener('click', e => {
+    const st = e.target.closest('[data-step]');
+    if (st) {
+      const inp = $('input', st.parentElement); const mn = Number(inp.dataset.min), mx = Number(inp.dataset.max);
+      const step = Number(st.dataset.step); let n = pnum(inp.value);
+      if (n === null || Number.isNaN(n)) n = step > 0 ? Math.max(mn, 1) : mn; // vacío: + da 1, − da el mínimo
+      else n = Math.round(n) + step;
+      inp.value = Math.max(mn, Math.min(mx, n)); formChanged(inp.name); return;
+    }
+    const sb = e.target.closest('.seg button');
+    if (sb) { const g = sb.parentElement; const was = sb.classList.contains('sel'); $$('button', g).forEach(b => b.classList.remove('sel')); if (!was) sb.classList.add('sel'); formChanged(g.dataset.name); return; }
+    const cb = e.target.closest('.chips button');
+    if (cb) { cb.classList.toggle('sel'); formChanged(cb.parentElement.dataset.name); }
+  });
+  $('#hdrHome').addEventListener('click', () => go('#/inicio'));
+  $('#banner').addEventListener('click', () => go('#/exportar'));
+  window.addEventListener('online', updateStatus);
+  window.addEventListener('offline', updateStatus);
+}
+function go(h) { if (location.hash === h) route(); else location.hash = h; }
+function setBar(html) { $('#bar').innerHTML = html; }
+function saveBar(label = 'Guardar', secondary = '') {
+  setBar(`<div id="msgs"></div><div class="btns">${secondary}<button type="button" class="btn pri" id="btnSave" data-label="${esc(label)}">${esc(label)}</button></div>`);
+}
+// Exige nombre del registrador (se pide una sola vez)
+async function requireUser() {
+  if (S.registrador) return true;
+  const r = await modal({ title: 'Nombre del registrador', body: '<p>Escribe tu nombre. Se guardará en este teléfono.</p>', input: { placeholder: 'Nombre y apellido' }, buttons: [{ label: 'Cancelar', val: false }, { label: 'Guardar', val: true, cls: 'pri' }] });
+  if (r.val && r.text.trim()) { S.registrador = r.text.trim(); await saveSettings(); return true; }
+  toast('El nombre del registrador es obligatorio', 'err'); return false;
+}
+
+// ---------- Estado de red y pendientes ----------
+async function countPending() {
+  let n = 0;
+  for (const s of DATA_STORES) { try { n += (await DB.all(s)).filter(r => !r.exportado).length; } catch (e) { /* nada */ } }
+  return n;
+}
+async function updateStatus() {
+  const on = navigator.onLine; const net = $('#net');
+  net.textContent = on ? 'En línea' : 'Sin señal'; net.className = 'net ' + (on ? 'on' : 'off');
+  const n = await countPending(); const b = $('#banner');
+  if (on && n > 0 && !location.hash.startsWith('#/exportar')) { b.textContent = `Tienes ${n} registros sin enviar — Exportar ahora ›`; b.classList.add('show'); }
+  else b.classList.remove('show');
+}
+
+// ---------- Enrutador por hash ----------
+const ROUTES = { inicio: renderInicio, conteo: renderConteo, ficha: renderFicha, psm: renderPSM, clima: renderClima, lotes: renderLotes, registros: renderRegistros, exportar: renderExportar, ajustes: renderAjustes };
+function parseHash() {
+  const h = location.hash.replace(/^#\/?/, ''); const [p, q] = h.split('?');
+  return { path: ROUTES[p] ? p : 'inicio', params: new URLSearchParams(q || '') };
+}
+let routing = Promise.resolve();
+function route() {
+  routing = routing.then(async () => {
+    clearTimeout(draftT); await saveDraft();
+    const { path, params } = parseHash();
+    ctx = {}; pendingWarn = null; setBar('');
+    $('#main').innerHTML = '';
+    try { await ROUTES[path](params); } catch (e) { console.error(e); $('#main').innerHTML = `<div class="card"><p class="msg err">Error al abrir la pantalla: ${esc(e.message)}</p></div>`; }
+    window.scrollTo(0, 0); updateStatus();
+  });
+  return routing;
+}
+
+/* =====================================================================
+   INICIO
+   ===================================================================== */
+async function renderInicio() {
+  const [conteo, pods, clima, lotes, fichas] = await Promise.all(['conteo', 'pods', 'clima', 'lotes', 'fichas'].map(s => DB.all(s)));
+  const fc = fichaCobertura(conteo, fichas);
+  const venc = pods.filter(p => p.estado === 0 && daysSince(p.fechaUltimo || p.fechaMarcaje) > DIAS_VENCIDA).length;
+  const vivas = pods.filter(p => p.estado === 0).length;
+  const abiertos = lotes.filter(l => l.estado !== 'cerrado').length;
+  const pend = await countPending();
+  const hoyC = conteo.filter(r => r.fecha === today()).length;
+  $('#main').innerHTML = `
+    ${!S.registrador ? `<div class="card"><p class="msg warn">⚠ Falta tu nombre de registrador.</p><button class="btn pri full" data-go="#/ajustes">Ir a Ajustes</button></div>` : `<p class="muted">Registrador: <b>${esc(S.registrador)}</b> · Equipo ${esc(S.dispositivo)}</p>`}
+    <div class="home-grid">
+      <button class="tile" data-go="#/conteo"><b>Conteo de mazorcas</b><small>Por ronda, punto y árbol</small><span class="bdg">${hoyC} árboles hoy</span></button>
+      <button class="tile" data-go="#/psm"><b>Mazorcas marcadas (PSM)</b><small>${vivas} vivas</small>${venc ? `<span class="bdg warn">⚠ ${venc} vencidas</span>` : '<span class="bdg">Al día</span>'}</button>
+      <button class="tile clima" data-go="#/clima"><b>Clima diario</b><small>Lluvia y temperatura</small><span class="bdg">${clima.filter(c => c.fecha === today()).length ? '✓ Hoy registrado' : 'Hoy pendiente'}</span></button>
+      <button class="tile" data-go="#/lotes"><b>Baba → seco</b><small>Conversión por lote</small><span class="bdg">${abiertos} lotes abiertos</span></button>
+      <button class="tile wide" data-go="#/ficha"><b>Ficha del árbol</b><small>Rasgos del fruto · clon</small><span class="bdg">${fc.con} / ${fc.total} árboles con ficha</span></button>
+    </div>
+    <button class="btn gold full" data-go="#/exportar" style="margin-bottom:10px">Exportar Excel ${pend ? `(${pend} sin enviar)` : ''}</button>
+    <div class="row"><button class="btn sec grow" data-go="#/registros">Registros</button><button class="btn sec grow" data-go="#/ajustes">Ajustes</button></div>`;
+  $$('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+}
+
+/* =====================================================================
+   5.1 CONTEO DE MAZORCAS
+   ===================================================================== */
+const C_HEAD = ['ronda', 'fecha', 'parcela', 'punto', 'lat', 'lon', 'prec', 'prod', 'improd', 'fallas'];
+const C_TREE_NUM = ['mp', 'p', 'm', 'g', 'mad', 'negra', 'ratas', 'pajaros', 'insectos', 'otra'];
+let C = { editId: null };
+
+async function renderConteo(params) {
+  C = { editId: null };
+  $('#main').innerHTML = `
+  <h2 class="ttl">Conteo de mazorcas</h2>
+  <form id="frm" autocomplete="off" onsubmit="return false">
+    <section class="card">
+      <h3>Visita · punto de muestreo</h3>
+      <div class="grid2">${fText('ronda', 'Ronda', 'AAAA-MM', 'list="rondasDL"')}${fDate('fecha', 'Fecha')}</div>
+      <datalist id="rondasDL"></datalist>
+      ${fSelect('parcela', 'Parcela', S.parcelas)}
+      ${stepper('punto', 'Punto # (1–20)', 1, 20)}
+      <div class="fld"><span>GPS del punto (opcional)</span>
+        <div class="row"><button type="button" class="btn sec grow" id="btnGps">Tomar GPS</button><button type="button" class="btn sec sm" id="btnGpsX">Quitar</button></div>
+        <div class="muted" id="gpsTxt" style="margin-top:6px">Sin GPS</div>
+        <input type="hidden" name="lat"><input type="hidden" name="lon"><input type="hidden" name="prec">
+      </div>
+      <h4>Censo del punto 10 × 10 m</h4>
+      <div class="grid-st">${stepper('prod', 'Árboles productivos')}${stepper('improd', 'Improductivos (<3 años / sin prod.)')}${stepper('fallas', 'Fallas / muertos')}</div>
+      <button type="button" class="btn sec full" id="btnNuevoPunto">Terminar punto · Nuevo punto ›</button>
+    </section>
+    <section class="card" id="ptCard"></section>
+    <section class="card" id="treeCard">
+      <div id="editBanner"></div>
+      <h3>Árbol</h3>
+      <div class="grid2">${stepper('arbol', 'Árbol #', 1, 999)}${fSelect('material', 'Material', S.materiales)}</div>
+      <div class="fbdg" id="fichaBdg"></div>
+      <h4>Mazorcas sanas por clase <span class="muted">(límites ${esc(limStr(curLim()))} cm)</span></h4>
+      <div class="grid-st">${SANAS.map(([k, l]) => stepper(k, l)).join('')}</div>
+      <h4>Mazorcas dañadas por causa</h4>
+      <div class="grid-st">${DANADAS.map(([k, l]) => stepper(k, l)).join('')}</div>
+      <h4>Fenología del árbol</h4>
+      ${fenoHTML()}
+      ${stepper('sobre25', 'Mazorcas sobre 2.5 m (estimado, opcional)')}
+      ${fText('nota', 'Nota (opcional)', 'Observación corta', 'maxlength="140"')}
+      <div class="live" id="treeSum"></div>
+    </section>
+  </form>`;
+  saveBar('Guardar', '<button type="button" class="btn sec" id="btnNext">+ Siguiente árbol</button>');
+  const frm = $('#frm');
+
+  // Valores iniciales: edición > borrador > valores por defecto
+  const rows = await DB.all('conteo');
+  $('#rondasDL').innerHTML = [...new Set(rows.map(r => r.ronda))].sort().reverse().slice(0, 12).map(r => `<option value="${esc(r)}">`).join('');
+  const editId = params.get('id');
+  const draft = await loadDraft('borrador_conteo');
+  if (editId) {
+    const r = await DB.get('conteo', editId);
+    if (r) loadConteoRow(r, true); else toast('Registro no encontrado', 'err');
+  } else if (draft) {
+    setVals(frm, draft.vals); C.editId = draft.editId || null;
+  } else {
+    setVals(frm, { ronda: S.ultimaRonda || today().slice(0, 7), fecha: today(), punto: 1, material: S.ultimoMaterial || '' });
+    await setNextTree();
+  }
+  ctx = {
+    draftKey: 'borrador_conteo',
+    draft: () => ({ vals: getVals(frm), editId: C.editId }),
+    onChange: async name => {
+      if (['ronda', 'parcela', 'punto'].includes(name) && !C.editId) await setNextTree();
+      if (['ronda', 'parcela', 'punto'].includes(name)) await refreshPoint(); else updateTreeSum();
+      if (['arbol', ''].includes(name)) await updateFichaBadge();
+    }
+  };
+  showGps(); await refreshPoint(); editBanner();
+
+  $('#btnGps').addEventListener('click', tomarGps);
+  $('#btnGpsX').addEventListener('click', () => { setVals(frm, { lat: '', lon: '', prec: '' }); showGps(); formChanged('lat'); });
+  $('#btnNuevoPunto').addEventListener('click', async () => {
+    const v = getVals(frm); const p = Math.min(20, (pnum(v.punto) || 0) + 1);
+    C.editId = null;
+    setVals(frm, { punto: p, lat: '', lon: '', prec: '', prod: '', improd: '', fallas: '' });
+    clearTree(); await setNextTree(); showGps(); editBanner(); await refreshPoint(); formChanged('punto');
+    window.scrollTo(0, 0); toast(`Punto ${p} listo`);
+  });
+  $('#btnNext').addEventListener('click', async () => {
+    C.editId = null; clearTree(); await setNextTree(); editBanner(); await refreshPoint(); formChanged('arbol');
+    $('#treeCard').scrollIntoView({ behavior: 'smooth' });
+  });
+  $('#btnSave').addEventListener('click', saveConteo);
+}
+function clearTree() {
+  const o = { nota: '', sobre25: '' }; C_TREE_NUM.forEach(k => { o[k] = ''; }); FENO.forEach(f => { o[f.k] = ''; });
+  setVals($('#frm'), o);
+}
+async function pointRows(v) {
+  const punto = pnum(v.punto);
+  return (await DB.all('conteo')).filter(r => r.ronda === v.ronda.trim() && r.parcela === v.parcela && r.punto === punto).sort((a, b) => a.arbol - b.arbol);
+}
+async function setNextTree() {
+  const v = getVals($('#frm')); const rs = await pointRows(v);
+  setVals($('#frm'), { arbol: rs.length ? Math.max(...rs.map(r => r.arbol)) + 1 : 1 });
+}
+function editBanner() {
+  const b = $('#editBanner'); if (!b) return;
+  const l = C.editId ? limStr(C.editLim) : '', now = limStr(curLim());
+  b.innerHTML = C.editId ? `<div class="editing">Editando árbol guardado · toca «+ Siguiente árbol» para salir${l !== now ? `<br>⚠ Este árbol se contó con límites ${esc(l)} cm (ahora ${esc(now)}); se conservan los límites originales.` : ''}</div>` : '';
+}
+// Insignia de ficha del árbol actual (Parcela + Punto + Árbol)
+async function updateFichaBadge() {
+  const box = $('#fichaBdg'); const frm = $('#frm'); if (!box || !frm) return;
+  const v = getVals(frm); const punto = pnum(v.punto), arbol = pnum(v.arbol);
+  if (!v.parcela || !Number.isInteger(punto) || !Number.isInteger(arbol)) { box.innerHTML = ''; return; }
+  let f = null; try { f = fichaDe(await DB.all('fichas'), v.parcela, punto, arbol); } catch (e) { console.warn(e); }
+  const q = `parcela=${encodeURIComponent(v.parcela)}&punto=${punto}&arbol=${arbol}`;
+  box.innerHTML = f
+    ? `<button type="button" class="btn sm ok" data-fgo="#/ficha?id=${esc(f.id)}">✓ Ficha: ${esc(f.clon || 'sin clon')}${f.confianza ? ` (${esc(f.confianza)})` : ''} ›</button>`
+    : (arbol <= 40 ? `<button type="button" class="btn sec sm" data-fgo="#/ficha?${esc(q)}">Sin ficha · Crear ficha ›</button>` : '');
+  const b = $('[data-fgo]', box); if (b) b.addEventListener('click', () => go(b.dataset.fgo));
+}
+function showGps() {
+  const v = getVals($('#frm')); const t = $('#gpsTxt'); if (!t) return;
+  t.textContent = v.lat ? `Lat ${v.lat} · Lon ${v.lon} · ±${v.prec} m` : 'Sin GPS';
+}
+function tomarGps() {
+  if (!navigator.geolocation) { toast('Este teléfono no tiene GPS disponible', 'err'); return; }
+  $('#gpsTxt').textContent = 'Buscando satélites… (puede tardar hasta 1 min)';
+  navigator.geolocation.getCurrentPosition(p => {
+    setVals($('#frm'), { lat: p.coords.latitude.toFixed(6), lon: p.coords.longitude.toFixed(6), prec: Math.round(p.coords.accuracy) });
+    showGps(); formChanged('lat'); toast('GPS tomado', 'ok');
+  }, err => { $('#gpsTxt').textContent = 'No se pudo tomar el GPS: ' + (err.code === 1 ? 'permiso denegado' : 'sin señal de satélite, intenta al aire libre'); },
+  { enableHighAccuracy: true, timeout: 60000, maximumAge: 0 });
+}
+function updateTreeSum(pointTotal) {
+  const v = getVals($('#frm')); const s = sanasDe(Object.fromEntries(SANAS.map(([k]) => [k, pnum(v[k]) || 0])));
+  const d = danadasDe(Object.fromEntries(DANADAS.map(([k]) => [k, pnum(v[k]) || 0])));
+  if (pointTotal !== undefined) C.pointTotal = pointTotal;
+  const pt = C.pointTotal || { sanas: 0, n: 0, editingSanas: 0 };
+  const ptS = pt.sanas - (C.editId ? pt.editingSanas : 0) + s;
+  const ptN = pt.n + (C.editId ? 0 : 1);
+  const t = $('#treeSum'); if (t) t.innerHTML = `Árbol: ${s} sanas · ${d} dañadas<br>Punto: ${ptS} sanas en ${ptN} árbol(es)${s > 120 ? ' <span class="bdg warn">⚠ >120</span>' : ''}`;
+}
+async function refreshPoint() {
+  const v = getVals($('#frm')); const card = $('#ptCard'); if (!card) return;
+  if (!v.parcela || !v.ronda) { card.innerHTML = '<p class="muted">Elige ronda y parcela para ver los árboles del punto.</p>'; updateTreeSum({ sanas: 0, n: 0, editingSanas: 0 }); return; }
+  const rs = await pointRows(v);
+  const tot = rs.reduce((a, r) => a + sanasDe(r), 0);
+  const ed = rs.find(r => r.id === C.editId);
+  card.innerHTML = `<h3>Árboles del punto ${esc(v.punto)} · ${esc(v.parcela)}</h3>
+    <div class="kpi"><div><b>${rs.length}</b><span>árboles guardados</span></div><div><b>${tot}</b><span>mazorcas sanas</span></div></div>
+    <ul class="list">${rs.map(r => `<li><div class="info"><b>Árbol ${r.arbol} · ${esc(r.material)}</b><small>${sanasDe(r)} sanas · ${danadasDe(r)} dañadas${r.exportado ? ' · enviado' : ''}</small></div>
+      <button type="button" class="btn sec sm" data-ed="${r.id}">Editar</button><button type="button" class="btn danger sm" data-del="${r.id}" aria-label="Borrar">Borrar</button></li>`).join('') || '<li class="muted">Aún no hay árboles en este punto.</li>'}</ul>`;
+  $$('[data-ed]', card).forEach(b => b.addEventListener('click', async () => { const r = await DB.get('conteo', b.dataset.ed); if (r) { loadConteoRow(r); formChanged(''); $('#treeCard').scrollIntoView({ behavior: 'smooth' }); } }));
+  $$('[data-del]', card).forEach(b => b.addEventListener('click', async () => {
+    const r = await DB.get('conteo', b.dataset.del); if (!r) return;
+    if (await confirmar('Borrar árbol', `¿Borrar el árbol ${r.arbol} del punto ${r.punto}?`, 'Borrar', true)) {
+      await DB.del('conteo', r.id); if (C.editId === r.id) { C.editId = null; clearTree(); await setNextTree(); editBanner(); }
+      toast('Árbol borrado'); await refreshPoint(); saveDraft(); updateStatus();
+    }
+  }));
+  updateTreeSum({ sanas: tot, n: rs.length, editingSanas: ed ? sanasDe(ed) : 0 });
+  await updateFichaBadge();
+}
+function loadConteoRow(r, silent) {
+  const o = {}; C_HEAD.forEach(k => { o[k] = nz(r[k]); });
+  o.arbol = r.arbol; o.material = r.material; C_TREE_NUM.forEach(k => { o[k] = nz(r[k]); });
+  FENO.forEach(f => { o[f.k] = nz(r[f.k]); }); o.sobre25 = nz(r.sobre25); o.nota = r.nota || '';
+  setVals($('#frm'), o); C.editId = r.id; C.editLim = r.limites || LIM_V10; showGps(); editBanner();
+  if (!silent) refreshPoint();
+}
+async function saveConteo() {
+  if (!await requireUser()) return;
+  const frm = $('#frm'); const v = getVals(frm); const E = [], W = [];
+  const ronda = v.ronda.trim();
+  if (!ronda) E.push('Ronda: obligatoria'); else if (!/^\d{4}-\d{2}$/.test(ronda)) W.push({ msg: `La ronda «${ronda}» no tiene formato AAAA-MM. ¿Confirmar?` });
+  if (!v.fecha) E.push('Fecha: obligatoria'); else if (v.fecha > today()) W.push({ msg: 'La fecha está en el futuro. ¿Confirmar?' });
+  if (!v.parcela) E.push('Parcela: elige una');
+  const punto = vInt(E, v.punto, 'Punto #', 1, 20, true);
+  const arbol = vInt(E, v.arbol, 'Árbol #', 1, 999, true);
+  if (!v.material) E.push('Material: elige uno');
+  const rec = {};
+  rec.prod = vInt(E, v.prod, 'Árboles productivos', 0, 300, false);
+  rec.improd = vInt(E, v.improd, 'Árboles improductivos', 0, 300, false);
+  rec.fallas = vInt(E, v.fallas, 'Fallas / muertos', 0, 300, false);
+  [...SANAS, ...DANADAS].forEach(([k, l]) => { rec[k] = vInt(E, v[k], l, 0, 300, false) ?? 0; });
+  rec.sobre25 = vInt(E, v.sobre25, 'Mazorcas sobre 2.5 m', 0, 300, false);
+  const s = sanasDe(rec);
+  if (s > 120) W.push({ msg: `Total de sanas del árbol = ${s} (más de 120). ¿Confirmar?` });
+  if (!E.length) {
+    const dup = (await DB.all('conteo')).find(r => r.id !== C.editId && r.ronda === ronda && r.parcela === v.parcela && r.punto === punto && r.arbol === arbol);
+    if (dup) W.push({ msg: `Ya existe el árbol ${arbol} en ${v.parcela}, punto ${punto}, ronda ${ronda}.`, action: { label: 'Editar el existente', fn: () => { loadConteoRow(dup); formChanged(''); } } });
+  }
+  if (!gate(E, W)) return;
+
+  const old = C.editId ? await DB.get('conteo', C.editId) : null;
+  const r = Object.assign(old || {}, rec, {
+    ronda, fecha: v.fecha, parcela: v.parcela, punto, arbol, material: v.material,
+    lat: pnum(v.lat), lon: pnum(v.lon), prec: pnum(v.prec), nota: (v.nota || '').trim()
+  });
+  FENO.forEach(f => { r[f.k] = segNum(v[f.k]); });
+  // Límites de tamaño vigentes al contar (al editar se conservan los originales)
+  if (!Array.isArray(r.limites)) r.limites = old ? LIM_V10.slice() : curLim();
+  stamp(r);
+  try {
+    await DB.put('conteo', r);
+    // Mantener el encabezado de la visita igual en todos los árboles del punto
+    const others = (await pointRows(v)).filter(o => o.id !== r.id);
+    const upd = others.filter(o => ['fecha', 'lat', 'lon', 'prec', 'prod', 'improd', 'fallas'].some(k => o[k] !== r[k]))
+      .map(o => { ['fecha', 'lat', 'lon', 'prec', 'prod', 'improd', 'fallas'].forEach(k => { o[k] = r[k]; }); return stamp(o); });
+    await DB.putMany('conteo', upd);
+  } catch (e) { console.error(e); toast('Error al guardar: ' + e.message, 'err'); return; }
+  S.ultimaRonda = ronda; S.ultimoMaterial = v.material; saveSettings();
+  toast(`Árbol ${arbol} guardado ✓`, 'ok');
+  C.editId = null; clearTree(); await setNextTree(); editBanner(); await refreshPoint(); await saveDraft(); updateStatus();
+  $('#treeCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+/* =====================================================================
+   5.2 MAZORCAS MARCADAS — PSM
+   ===================================================================== */
+let P = { tab: 'revision', editPod: null };
+const podCode = (parcela, arbol, n) => `${parcela}-A${pad(arbol)}-M${pad(n)}`;
+const lastCheck = p => p.fechaUltimo || p.fechaMarcaje;
+const isVencida = p => p.estado === 0 && daysSince(lastCheck(p)) > DIAS_VENCIDA;
+
+async function renderPSM(params) {
+  P = { tab: params.get('pod') ? 'marcar' : (P.tab || 'revision'), editPod: params.get('pod') || null };
+  if (params.get('tab')) P.tab = params.get('tab');
+  const pods = await DB.all('pods');
+  const vivas = pods.filter(p => p.estado === 0); const venc = vivas.filter(isVencida);
+  $('#main').innerHTML = `
+    <h2 class="ttl">Mazorcas marcadas (PSM)</h2>
+    <div class="kpi" style="margin-bottom:12px"><div><b>${pods.length}</b><span>marcadas</span></div><div><b>${vivas.length}</b><span>vivas</span></div>
+      <div style="border-left-color:${venc.length ? 'var(--amb)' : 'var(--verde)'}"><b>${venc.length ? '⚠ ' : ''}${venc.length}</b><span>vencidas (>${DIAS_VENCIDA} días)</span></div></div>
+    <div class="tabs"><button type="button" data-tab="revision">Revisión</button><button type="button" data-tab="marcar">Marcar</button><button type="button" data-tab="vencidas">Vencidas (${venc.length})</button></div>
+    <div id="psmBody"></div>`;
+  $$('[data-tab]').forEach(b => b.addEventListener('click', () => { P.tab = b.dataset.tab; P.editPod = null; showPsmTab(); }));
+  await showPsmTab();
+}
+async function showPsmTab() {
+  await saveDraft(); clearTimeout(draftT);
+  $$('[data-tab]').forEach(b => b.classList.toggle('sel', b.dataset.tab === P.tab));
+  ctx = {}; pendingWarn = null; setBar('');
+  if (P.tab === 'marcar') await psmMarcar(); else if (P.tab === 'vencidas') await psmVencidas(); else await psmRevision();
+}
+
+// --- Pestaña Revisión ---
+async function psmRevision(preset) {
+  const body = $('#psmBody');
+  body.innerHTML = `<form id="rev" autocomplete="off" onsubmit="return false">
+    <section class="card"><h3>Revisión cada 14 días</h3>
+      ${fSelect('parcela', 'Parcela', S.parcelas)}
+      <div class="fld"><span>Árbol</span><select name="arbol"><option value="">— Elegir —</option></select></div>
+      ${fDate('fecha', 'Fecha de revisión')}
+    </section>
+    <div id="monAlert"></div>
+    <section class="card" id="podList"><p class="muted">Elige parcela y árbol.</p></section>
+    <section class="card" id="revFeno"><h3>Fenología del árbol en esta fecha</h3>${fenoHTML()}</section>
+  </form>`;
+  saveBar('Guardar revisión');
+  const frm = $('#rev');
+  const draft = preset ? null : await loadDraft('borrador_psm');
+  const base = preset || (draft && draft.vals) || { fecha: today() };
+  setVals(frm, { parcela: base.parcela || '', fecha: base.fecha || today() });
+  await fillArbolSelect(); setVals(frm, { arbol: base.arbol || '' });
+  await renderPodList();
+  setVals(frm, base); applyPodVis();
+  ctx = {
+    draftKey: 'borrador_psm', draft: () => ({ vals: getVals(frm) }),
+    onChange: async name => {
+      if (name === 'parcela') { await fillArbolSelect(); await renderPodList(); }
+      else if (name === 'arbol') await renderPodList();
+      else if (name.startsWith('st_') || name.startsWith('cz_')) {
+        applyPodVis();
+        if (name.startsWith('cz_') && getVals(frm)[name] === MONILIA) {
+          await modal({ title: '⚠ Sospecha de monilia', danger: true, body: '<p class="alerta">Reportar de inmediato a gerencia agrícola y al Departamento de Cacao. Tomar muestra y aislar.</p><p>La moniliasis no está reportada en RD: esta es una alerta temprana.</p>', buttons: [{ label: 'Entendido', val: true, cls: 'pri' }] });
+        }
+      }
+    }
+  };
+  $('#btnSave').addEventListener('click', saveRevision);
+}
+async function fillArbolSelect() {
+  const frm = $('#rev'); const parcela = getVals(frm).parcela; const sel = $('select[name="arbol"]', frm);
+  const pods = (await DB.all('pods')).filter(p => p.parcela === parcela);
+  const arboles = [...new Set(pods.map(p => p.arbol))].sort((a, b) => a - b);
+  sel.innerHTML = `<option value="">${arboles.length ? '— Elegir —' : (parcela ? 'Sin mazorcas marcadas' : '— Elegir parcela —')}</option>` + arboles.map(a => {
+    const ps = pods.filter(p => p.arbol === a); const v = ps.filter(p => p.estado === 0).length; const vc = ps.filter(isVencida).length;
+    return `<option value="${a}">Árbol ${a} · ${v} vivas${vc ? ` · ⚠ ${vc} vencidas` : ''}</option>`;
+  }).join('');
+}
+async function renderPodList() {
+  const frm = $('#rev'); const v = getVals(frm); const box = $('#podList');
+  if (!v.parcela || !v.arbol) { box.innerHTML = '<p class="muted">Elige parcela y árbol. Si no hay mazorcas, usa la pestaña «Marcar».</p>'; return; }
+  const arbol = Number(v.arbol);
+  const pods = (await DB.all('pods')).filter(p => p.parcela === v.parcela && p.arbol === arbol).sort((a, b) => a.codigo.localeCompare(b.codigo));
+  const visits = await DB.all('visits');
+  const hasV = new Set(visits.map(x => x.podId));
+  const vivas = pods.filter(p => p.estado === 0), cerradas = pods.filter(p => p.estado !== 0);
+  box.innerHTML = `<h3>Mazorcas vivas · ${esc(v.parcela)} árbol ${arbol}</h3>
+    ${vivas.map(p => {
+      const d = daysSince(lastCheck(p));
+      return `<div class="pod ${isVencida(p) ? 'venc' : ''}" data-pod="${p.id}">
+        <div class="pod-h"><b>${esc(p.codigo)}</b> ${isVencida(p) ? '<span class="bdg warn">⚠ vencida</span>' : ''}
+          <small>Clase ${esc(p.clase)} · ${esc(p.material)}${p.cinta ? ` · cinta ${esc(p.cinta)}` : ''} · marcada ${fmtD(p.fechaMarcaje)} · últ. revisión ${fmtD(lastCheck(p))} (${d} d)${p.largoUltimo ? ` · ${p.largoUltimo} cm` : ''}</small></div>
+        ${seg('st_' + p.id, 'Estado hoy', ESTADOS_POD.map((l, i) => [i, l]))}
+        <div class="fld pv-viva hidden"><span>Largo actual cm (opcional)</span><input name="lg_${p.id}" inputmode="decimal" placeholder="1.0–40" autocomplete="off"></div>
+        <div class="pv-muerta hidden">${fSelect('cz_' + p.id, 'Causa de muerte (obligatoria)', CAUSAS_MUERTE)}</div>
+        ${hasV.has(p.id) ? `<button type="button" class="btn sec sm" data-undo="${p.id}">Deshacer última revisión</button>` : ''}
+      </div>`;
+    }).join('') || '<p class="muted">No quedan mazorcas vivas en este árbol.</p>'}
+    <button type="button" class="btn gold full" id="btnMarcarAqui">Marcar mazorcas nuevas en este árbol</button>
+    ${cerradas.length ? `<h4>Cerradas (muertas / cosechadas)</h4><ul class="list">${cerradas.map(p => `<li><div class="info"><b>${esc(p.codigo)}</b><small>${ESTADOS_POD[p.estado]}${p.causa ? ' · ' + esc(p.causa) : ''} · ${fmtD(p.fechaUltimo)}</small></div>${hasV.has(p.id) ? `<button type="button" class="btn sec sm" data-undo="${p.id}">Deshacer</button>` : ''}</li>`).join('')}</ul>` : ''}`;
+  $('#btnMarcarAqui').addEventListener('click', async () => {
+    const mat = pods.length ? pods[pods.length - 1].material : '';
+    P.tab = 'marcar'; P.editPod = null;
+    await dropDraft('borrador_psm_marcar');
+    $$('[data-tab]').forEach(b => b.classList.toggle('sel', b.dataset.tab === 'marcar'));
+    await saveDraft(); ctx = {}; setBar('');
+    await psmMarcar({ parcela: v.parcela, arbol, material: mat, fechaMarcaje: v.fecha || today(), cinta: S.ultimaCinta || '' });
+  });
+  $$('[data-undo]', box).forEach(b => b.addEventListener('click', () => undoLastVisit(b.dataset.undo)));
+  applyPodVis();
+}
+function applyPodVis() {
+  const frm = $('#rev'); if (!frm) return; const v = getVals(frm); let mon = false;
+  $$('.pod[data-pod]', frm).forEach(el => {
+    const id = el.dataset.pod; const st = v['st_' + id];
+    $('.pv-viva', el).classList.toggle('hidden', st !== '0');
+    $('.pv-muerta', el).classList.toggle('hidden', st !== '1');
+    if (st === '1' && v['cz_' + id] === MONILIA) mon = true;
+  });
+  const a = $('#monAlert');
+  if (a) a.innerHTML = mon ? '<div class="alerta">⚠ SOSPECHA DE MONILIA: Reportar de inmediato a gerencia agrícola y al Departamento de Cacao. Tomar muestra y aislar.</div>' : '';
+}
+async function undoLastVisit(podId) {
+  const pod = await DB.get('pods', podId); if (!pod) return;
+  const vs = (await DB.all('visits')).filter(x => x.podId === podId).sort((a, b) => (a.fecha + a.creado).localeCompare(b.fecha + b.creado));
+  const last = vs[vs.length - 1]; if (!last) { toast('Esta mazorca no tiene revisiones'); return; }
+  if (!await confirmar('Deshacer última revisión', `${esc(pod.codigo)}: se borrará la revisión del ${fmtD(last.fecha)} (${ESTADOS_POD[last.estado]}) y la mazorca volverá a su estado anterior.`, 'Deshacer', true)) return;
+  const prev = last.prev || { estado: 0, causa: '', fechaUltimo: vs.length > 1 ? vs[vs.length - 2].fecha : null, largoUltimo: null };
+  Object.assign(pod, prev); stamp(pod);
+  await DB.put('pods', pod); await DB.del('visits', last.id);
+  toast('Revisión deshecha'); if ($('#rev')) { await fillArbolSelect(); setVals($('#rev'), { arbol: pod.arbol }); await renderPodList(); } updateStatus();
+}
+async function saveRevision() {
+  if (!await requireUser()) return;
+  const frm = $('#rev'); const v = getVals(frm); const E = [], W = [];
+  if (!v.parcela) E.push('Parcela: elige una');
+  if (!v.arbol) E.push('Árbol: elige uno');
+  if (!v.fecha) E.push('Fecha de revisión: obligatoria'); else if (v.fecha > today()) W.push({ msg: 'La fecha de revisión está en el futuro. ¿Confirmar?' });
+  const arbol = Number(v.arbol);
+  const vivas = (await DB.all('pods')).filter(p => p.parcela === v.parcela && p.arbol === arbol && p.estado === 0);
+  const changes = [];
+  for (const p of vivas) {
+    const st = v['st_' + p.id]; if (st === '' || st === undefined) continue;
+    const ch = { pod: p, estado: Number(st), causa: '', largo: null };
+    if (v.fecha && v.fecha < p.fechaMarcaje) E.push(`${p.codigo}: la fecha de revisión es anterior al marcaje (${fmtD(p.fechaMarcaje)})`);
+    else if (v.fecha && p.fechaUltimo && v.fecha < p.fechaUltimo) W.push({ msg: `${p.codigo}: fecha anterior a su última revisión (${fmtD(p.fechaUltimo)}). ¿Confirmar?` });
+    if (ch.estado === 0) {
+      ch.largo = vDec(E, v['lg_' + p.id], `${p.codigo} largo`, 1, 40, false);
+      if (ch.largo !== null && p.largoUltimo && ch.largo < p.largoUltimo - 1) W.push({ msg: `${p.codigo}: el largo (${ch.largo} cm) es menor que el anterior (${p.largoUltimo} cm). ¿Confirmar?` });
+    }
+    if (ch.estado === 1) { ch.causa = v['cz_' + p.id] || ''; if (!ch.causa) E.push(`${p.codigo}: elige la causa de muerte`); }
+    changes.push(ch);
+  }
+  const feno = {}; FENO.forEach(f => { feno[f.k] = segNum(v[f.k]); });
+  const hasFeno = FENO.some(f => feno[f.k] !== null);
+  if (v.parcela && v.arbol && !changes.length && !hasFeno) E.push('Marca el estado de al menos una mazorca o la fenología');
+  if (changes.length && changes.length < vivas.length) W.push({ msg: `${vivas.length - changes.length} mazorca(s) viva(s) de este árbol quedan sin revisar. ¿Guardar así?` });
+  if (!gate(E, W)) return;
+
+  const visits = [], pods = [];
+  for (const ch of changes) {
+    const p = ch.pod;
+    const prev = { estado: p.estado, causa: p.causa || '', fechaUltimo: p.fechaUltimo || null, largoUltimo: p.largoUltimo ?? null };
+    visits.push(stamp({ podId: p.id, codigo: p.codigo, parcela: p.parcela, arbol: p.arbol, fecha: v.fecha, estado: ch.estado, causa: ch.causa, largo: ch.largo, prev }));
+    p.estado = ch.estado; p.causa = ch.causa; p.fechaUltimo = v.fecha; if (ch.largo !== null) p.largoUltimo = ch.largo;
+    pods.push(stamp(p));
+  }
+  try {
+    await DB.putMany('visits', visits); await DB.putMany('pods', pods);
+    if (hasFeno) await DB.put('fenologia', stamp(Object.assign({ fecha: v.fecha, parcela: v.parcela, arbol, origen: 'PSM' }, feno)));
+  } catch (e) { console.error(e); toast('Error al guardar: ' + e.message, 'err'); return; }
+  const mon = changes.some(c => c.causa === MONILIA);
+  toast(`Revisión guardada ✓ (${changes.length} mazorcas${hasFeno ? ' + fenología' : ''})`, 'ok');
+  if (mon) await modal({ title: '⚠ Sospecha de monilia registrada', danger: true, body: '<p class="alerta">Reportar de inmediato a gerencia agrícola y al Departamento de Cacao. Tomar muestra y aislar.</p>', buttons: [{ label: 'Entendido', val: true, cls: 'pri' }] });
+  await dropDraft('borrador_psm');
+  await psmRevision({ parcela: v.parcela, arbol: String(arbol), fecha: v.fecha });
+  updateStatus();
+}
+
+// --- Pestaña Marcar ---
+async function psmMarcar(preset) {
+  const body = $('#psmBody');
+  body.innerHTML = `<form id="mar" autocomplete="off" onsubmit="return false">
+    <section class="card"><div id="editBanner"></div><h3>Marcar mazorca nueva</h3>
+      ${fSelect('parcela', 'Parcela', S.parcelas)}
+      <div class="grid2">${stepper('arbol', 'Árbol #', 1, 999)}${fSelect('material', 'Material', S.materiales)}</div>
+      ${seg('estratoAltura', 'Estrato de altura', [['Bajo', 'Bajo ≤1.5 m'], ['Alto', 'Alto >1.5 m']])}
+      ${seg('clase', 'Clase al marcar', CLASES.map(c => [c[0], `${c[0]} ${c[1]}`]))}
+      <div class="grid2">${fDec('largo', 'Largo cm', '1.0–40')}${fDec('diametro', 'Diámetro cm (opc.)', '')}</div>
+      ${fDate('fechaMarcaje', 'Fecha de marcaje')}
+      ${fSelect('cinta', 'Color de cinta (cohorte)', CINTAS, '— Sin cinta —')}
+      <div class="live" id="codePrev"></div>
+    </section>
+    <section class="card" id="treePods"></section>
+  </form>`;
+  saveBar(P.editPod ? 'Guardar cambios' : 'Guardar mazorca');
+  const frm = $('#mar');
+  if (P.editPod) {
+    const p = await DB.get('pods', P.editPod);
+    if (p) { setVals(frm, p); $$('select[name="parcela"],input[name="arbol"]', frm).forEach(el => { el.disabled = true; }); $$('.stp', frm).slice(0, 2).forEach(b => { b.disabled = true; }); $('#editBanner').innerHTML = `<div class="editing">Editando ${esc(p.codigo)} (código fijo)</div>`; }
+    else { toast('Mazorca no encontrada', 'err'); P.editPod = null; }
+  } else {
+    const draft = preset ? null : await loadDraft('borrador_psm_marcar');
+    setVals(frm, preset || (draft && draft.vals) || { fechaMarcaje: today(), material: S.ultimoMaterial || '', cinta: S.ultimaCinta || '' });
+  }
+  ctx = {
+    draftKey: P.editPod ? null : 'borrador_psm_marcar', draft: () => ({ vals: getVals(frm) }),
+    onChange: name => { if (['parcela', 'arbol', 'clase', 'largo'].includes(name)) refreshMarcar(); }
+  };
+  await refreshMarcar();
+  $('#btnSave').addEventListener('click', saveMarcar);
+}
+async function nextPodN(parcela, arbol) {
+  const ns = (await DB.all('pods')).filter(p => p.parcela === parcela && p.arbol === arbol).map(p => p.n || 0);
+  return ns.length ? Math.max(...ns) + 1 : 1;
+}
+async function refreshMarcar() {
+  const frm = $('#mar'); if (!frm) return; const v = getVals(frm);
+  const arbol = pnum(v.arbol); const prev = $('#codePrev'); const tp = $('#treePods');
+  if (P.editPod) { prev.textContent = 'El código no cambia al editar.'; tp.innerHTML = ''; return; }
+  if (!v.parcela || !arbol || !Number.isInteger(arbol)) { prev.textContent = 'Código: elige parcela y árbol'; tp.innerHTML = '<p class="muted">Las mazorcas del árbol aparecerán aquí.</p>'; return; }
+  const n = await nextPodN(v.parcela, arbol);
+  prev.innerHTML = `Código asignado: <span class="calc">${esc(podCode(v.parcela, arbol, n))}</span>`;
+  const ps = (await DB.all('pods')).filter(p => p.parcela === v.parcela && p.arbol === arbol).sort((a, b) => a.n - b.n);
+  tp.innerHTML = `<h3>Mazorcas de ${esc(v.parcela)} árbol ${arbol}</h3><ul class="list">${ps.map(p => `<li><div class="info"><b>${esc(p.codigo)}</b><small>${esc(p.clase)} · ${p.largo} cm${p.cinta ? ` · cinta ${esc(p.cinta)}` : ''} · ${ESTADOS_POD[p.estado]} · ${fmtD(p.fechaMarcaje)}</small></div></li>`).join('') || '<li class="muted">Ninguna todavía.</li>'}</ul>`;
+}
+async function saveMarcar() {
+  if (!await requireUser()) return;
+  const frm = $('#mar'); const v = getVals(frm); const E = [], W = [];
+  const editing = P.editPod ? await DB.get('pods', P.editPod) : null;
+  if (!v.parcela) E.push('Parcela: elige una');
+  const arbol = vInt(E, v.arbol, 'Árbol #', 1, 999, true);
+  if (!v.material) E.push('Material: elige uno');
+  if (!v.estratoAltura) E.push('Estrato de altura: elige Bajo o Alto');
+  if (!v.clase) E.push('Clase al marcar: elige MP, P, M o G');
+  const largo = vDec(E, v.largo, 'Largo cm', 1, 40, true);
+  const diam = vDec(E, v.diametro, 'Diámetro cm', 0.5, 20, false);
+  if (!v.fechaMarcaje) E.push('Fecha de marcaje: obligatoria'); else if (v.fechaMarcaje > today()) W.push({ msg: 'La fecha de marcaje está en el futuro. ¿Confirmar?' });
+  if (editing && editing.fechaUltimo && v.fechaMarcaje > editing.fechaUltimo) E.push(`La fecha de marcaje no puede ser posterior a la última revisión (${fmtD(editing.fechaUltimo)})`);
+  const cl = CLASES.find(c => c[0] === v.clase);
+  if (cl && largo !== null && (largo < cl[2] - 0.05 || largo > cl[3] + 0.05)) W.push({ msg: `Largo ${largo} cm no corresponde a la clase ${cl[0]} (${cl[1]}). ¿Confirmar?` });
+  if (!gate(E, W)) return;
+  let p;
+  if (editing) {
+    p = Object.assign(editing, { material: v.material, estratoAltura: v.estratoAltura, clase: v.clase, largo, diametro: diam, fechaMarcaje: v.fechaMarcaje, cinta: v.cinta || '' });
+  } else {
+    const n = await nextPodN(v.parcela, arbol);
+    p = { codigo: podCode(v.parcela, arbol, n), n, parcela: v.parcela, arbol, material: v.material, estratoAltura: v.estratoAltura, clase: v.clase, largo, diametro: diam, fechaMarcaje: v.fechaMarcaje, cinta: v.cinta || '', estado: 0, causa: '', fechaUltimo: null, largoUltimo: null };
+  }
+  stamp(p);
+  try { await DB.put('pods', p); } catch (e) { toast('Error al guardar: ' + e.message, 'err'); return; }
+  S.ultimoMaterial = v.material; if (!editing) S.ultimaCinta = v.cinta || ''; saveSettings();
+  toast(`${editing ? 'Actualizada' : 'Marcada'} ${p.codigo} ✓`, 'ok');
+  if (editing) { P.editPod = null; history.replaceState(null, '', '#/psm'); P.tab = 'revision'; await showPsmTab(); }
+  else { setVals(frm, { clase: '', largo: '', diametro: '' }); await saveDraft(); await refreshMarcar(); }
+  updateStatus();
+}
+
+// --- Pestaña Vencidas ---
+async function psmVencidas() {
+  const venc = (await DB.all('pods')).filter(isVencida);
+  const groups = {};
+  venc.forEach(p => { const k = p.parcela + '|' + p.arbol; (groups[k] = groups[k] || []).push(p); });
+  const keys = Object.keys(groups).sort();
+  $('#psmBody').innerHTML = `<section class="card"><h3>Vivas sin revisión hace más de ${DIAS_VENCIDA} días</h3>
+    <ul class="list">${keys.map(k => {
+      const ps = groups[k]; const [parcela, arbol] = k.split('|'); const maxD = Math.max(...ps.map(p => daysSince(lastCheck(p))));
+      return `<li><div class="info"><b>${esc(parcela)} · Árbol ${arbol}</b><small>${ps.length} mazorca(s) · hasta ${maxD} días sin revisar</small></div><button type="button" class="btn pri sm" data-rv="${esc(k)}">Revisar</button></li>`;
+    }).join('') || '<li><span class="bdg ok">✓</span>&nbsp;No hay mazorcas vencidas.</li>'}</ul></section>`;
+  $$('[data-rv]').forEach(b => b.addEventListener('click', async () => {
+    const [parcela, arbol] = b.dataset.rv.split('|'); P.tab = 'revision';
+    $$('[data-tab]').forEach(x => x.classList.toggle('sel', x.dataset.tab === 'revision'));
+    await dropDraft('borrador_psm'); await psmRevision({ parcela, arbol, fecha: today() });
+  }));
+}
+
+/* =====================================================================
+   5.3 CLIMA DIARIO
+   ===================================================================== */
+let K = { editId: null };
+async function renderClima(params) {
+  K = { editId: null };
+  $('#main').innerHTML = `<h2 class="ttl" style="color:var(--verde)">Clima diario</h2>
+  <form id="cli" autocomplete="off" onsubmit="return false"><section class="card" style="border-color:var(--verde)">
+    <div id="editBanner"></div>
+    ${fSelect('estacion', 'Estación', S.estaciones)}
+    <div class="grid2">${fDate('fecha', 'Fecha')}<div class="fld"><span>Hora de lectura</span><input type="time" name="hora"></div></div>
+    ${fDec('lluvia', 'Lluvia 24 h (mm)', '0–400')}
+    <div class="grid2">${fDec('tmax', 'T máx °C (opc.)', '10–45')}${fDec('tmin', 'T mín °C (opc.)', '10–45')}</div>
+    ${fDec('hr', 'Humedad relativa % (opc.)', '0–100')}
+    ${chips('eventos', 'Eventos', EVENTOS)}
+    ${fText('nota', 'Nota (opcional)', '', 'maxlength="140"')}
+  </section></form>
+  <section class="card" id="cliList"></section>`;
+  saveBar('Guardar');
+  const frm = $('#cli');
+  const def = { estacion: S.ultimaEstacion || S.estaciones[0] || '', fecha: today(), hora: '07:00' };
+  const id = params.get('id'); const draft = await loadDraft('borrador_clima');
+  if (id) { const r = await DB.get('clima', id); if (r) loadClima(r); }
+  else if (draft) { setVals(frm, draft.vals); K.editId = draft.editId || null; climaBanner(); }
+  else setVals(frm, def);
+  ctx = { draftKey: 'borrador_clima', draft: () => ({ vals: getVals(frm), editId: K.editId }) };
+  $('#btnSave').addEventListener('click', saveClima);
+  await climaList();
+}
+function climaBanner() { $('#editBanner').innerHTML = K.editId ? '<div class="editing">Editando lectura guardada</div>' : ''; }
+function loadClima(r) {
+  setVals($('#cli'), { estacion: r.estacion, fecha: r.fecha, hora: r.hora, lluvia: nz(r.lluvia), tmax: nz(r.tmax), tmin: nz(r.tmin), hr: nz(r.hr), eventos: r.eventos || [], nota: r.nota || '' });
+  K.editId = r.id; climaBanner();
+}
+async function climaList() {
+  const rs = (await DB.all('clima')).sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora)).slice(0, 10);
+  $('#cliList').innerHTML = `<h3>Últimas lecturas</h3><ul class="list">${rs.map(r => `<li><div class="info"><b>${fmtD(r.fecha)} · ${r.lluvia} mm</b><small>${esc(r.estacion)}${r.tmax !== null ? ` · ${r.tmin ?? '–'}–${r.tmax} °C` : ''}${r.exportado ? ' · enviado' : ''}</small></div><button type="button" class="btn sec sm" data-ed="${r.id}">Editar</button></li>`).join('') || '<li class="muted">Sin lecturas.</li>'}</ul>`;
+  $$('[data-ed]', $('#cliList')).forEach(b => b.addEventListener('click', async () => { const r = await DB.get('clima', b.dataset.ed); if (r) { loadClima(r); formChanged(''); window.scrollTo(0, 0); } }));
+}
+async function saveClima() {
+  if (!await requireUser()) return;
+  const v = getVals($('#cli')); const E = [], W = [];
+  if (!v.estacion) E.push('Estación: elige una');
+  if (!v.fecha) E.push('Fecha: obligatoria'); else if (v.fecha > today()) W.push({ msg: 'La fecha está en el futuro. ¿Confirmar?' });
+  if (!v.hora) E.push('Hora de lectura: obligatoria');
+  const lluvia = vDec(E, v.lluvia, 'Lluvia 24 h', 0, 400, true);
+  if (lluvia !== null && lluvia > 150) W.push({ msg: `Lluvia de ${lluvia} mm en 24 h (más de 150). ¿Confirmar?` });
+  const tmax = vDec(E, v.tmax, 'T máx', 10, 45, false), tmin = vDec(E, v.tmin, 'T mín', 10, 45, false);
+  if (tmax !== null && tmin !== null && tmin > tmax) E.push('T mín no puede ser mayor que T máx');
+  const hr = vDec(E, v.hr, 'Humedad relativa', 0, 100, false);
+  if (!E.length) {
+    const dup = (await DB.all('clima')).find(r => r.id !== K.editId && r.estacion === v.estacion && r.fecha === v.fecha);
+    if (dup) W.push({ msg: `Ya hay una lectura de ${v.estacion} el ${fmtD(v.fecha)}.`, action: { label: 'Editar el existente', fn: () => { loadClima(dup); formChanged(''); } } });
+  }
+  if (!gate(E, W)) return;
+  const old = K.editId ? await DB.get('clima', K.editId) : null;
+  const r = stamp(Object.assign(old || {}, { estacion: v.estacion, fecha: v.fecha, hora: v.hora, lluvia, tmax, tmin, hr, eventos: v.eventos || [], nota: (v.nota || '').trim() }));
+  try { await DB.put('clima', r); } catch (e) { toast('Error al guardar: ' + e.message, 'err'); return; }
+  S.ultimaEstacion = v.estacion; saveSettings();
+  toast('Lectura de clima guardada ✓', 'ok');
+  K.editId = null; climaBanner();
+  setVals($('#cli'), { estacion: v.estacion, fecha: today(), hora: '07:00', lluvia: '', tmax: '', tmin: '', hr: '', eventos: [], nota: '' });
+  await dropDraft('borrador_clima'); await climaList(); updateStatus();
+}
+
+/* =====================================================================
+   5.4 CONVERSIÓN BABA → SECO
+   ===================================================================== */
+let L = { editId: null };
+async function renderLotes(params) {
+  L = { editId: null };
+  $('#main').innerHTML = `<h2 class="ttl">Baba → seco por lote</h2>
+  <form id="lot" autocomplete="off" onsubmit="return false"><section class="card">
+    <div id="editBanner"></div>
+    ${fText('codigo', 'Código de lote', 'Ej. L-2026-041')}
+    ${chips('parcelas', 'Parcela(s) de origen', S.parcelas.map(p => [p, p]))}
+    <div class="grid2">${fDate('fechaEntrada', 'Entrada a fermentación')}${fDec('kgBaba', 'Kg de baba', '>0')}</div>
+    <h4>Cierre (completar al salir del secado)</h4>
+    <div class="grid2">${fDate('fechaSalida', 'Salida de secado')}${fDec('kgSeco', 'Kg secos', '')}</div>
+    ${fDec('humedad', 'Humedad final % (opc.)', '')}
+    <div class="live" id="factor"></div>
+  </section></form>
+  <section class="card" id="lotList"></section>`;
+  saveBar('Guardar');
+  const frm = $('#lot');
+  const id = params.get('id'); const draft = await loadDraft('borrador_lotes');
+  if (id) { const r = await DB.get('lotes', id); if (r) loadLote(r); }
+  else if (draft) { setVals(frm, draft.vals); L.editId = draft.editId || null; loteBanner(); }
+  else setVals(frm, { fechaEntrada: today() });
+  ctx = { draftKey: 'borrador_lotes', draft: () => ({ vals: getVals(frm), editId: L.editId }), onChange: showFactor };
+  showFactor();
+  $('#btnSave').addEventListener('click', saveLote);
+  await loteList();
+}
+function loteBanner() { $('#editBanner').innerHTML = L.editId ? '<div class="editing">Editando lote guardado</div>' : ''; }
+function loadLote(r) {
+  setVals($('#lot'), { codigo: r.codigo, parcelas: r.parcelas || [], fechaEntrada: r.fechaEntrada, kgBaba: nz(r.kgBaba), fechaSalida: r.fechaSalida || '', kgSeco: nz(r.kgSeco), humedad: nz(r.humedad) });
+  L.editId = r.id; loteBanner(); showFactor();
+}
+function showFactor() {
+  const v = getVals($('#lot')); const b = pnum(v.kgBaba), s = pnum(v.kgSeco); const el = $('#factor'); if (!el) return;
+  if (b > 0 && s > 0) {
+    const f = s / b; const out = f < 0.30 || f > 0.45;
+    el.innerHTML = `Factor seco/baba: <span class="calc">${f.toFixed(3)}</span> ${out ? '<span class="bdg warn">⚠ fuera de 0.30–0.45</span>' : '<span class="bdg ok">✓ en rango</span>'}`;
+  } else el.textContent = 'Factor seco/baba: se calcula al poner kg de baba y kg secos.';
+}
+async function loteList() {
+  const rs = (await DB.all('lotes')).filter(l => l.estado !== 'cerrado').sort((a, b) => a.fechaEntrada.localeCompare(b.fechaEntrada));
+  $('#lotList').innerHTML = `<h3>Lotes abiertos (${rs.length})</h3><ul class="list">${rs.map(r => `<li><div class="info"><b>${esc(r.codigo)}</b><small>Entrada ${fmtD(r.fechaEntrada)} · ${r.kgBaba} kg baba · ${daysSince(r.fechaEntrada)} días</small></div><button type="button" class="btn pri sm" data-ed="${r.id}">Completar</button></li>`).join('') || '<li class="muted">No hay lotes abiertos.</li>'}</ul>`;
+  $$('[data-ed]', $('#lotList')).forEach(b => b.addEventListener('click', async () => { const r = await DB.get('lotes', b.dataset.ed); if (r) { loadLote(r); formChanged(''); window.scrollTo(0, 0); } }));
+}
+async function saveLote() {
+  if (!await requireUser()) return;
+  const v = getVals($('#lot')); const E = [], W = [];
+  const codigo = (v.codigo || '').trim();
+  if (!codigo) E.push('Código de lote: obligatorio');
+  if (!v.parcelas.length) E.push('Parcela(s) de origen: elige al menos una');
+  if (!v.fechaEntrada) E.push('Fecha de entrada: obligatoria'); else if (v.fechaEntrada > today()) W.push({ msg: 'La fecha de entrada está en el futuro. ¿Confirmar?' });
+  if (v.fechaSalida && v.fechaSalida > today()) W.push({ msg: 'La fecha de salida de secado está en el futuro. ¿Confirmar?' });
+  const kgBaba = vDec(E, v.kgBaba, 'Kg de baba', 0.01, 100000, true);
+  const kgSeco = vDec(E, v.kgSeco, 'Kg secos', 0.01, 100000, false);
+  const humedad = vDec(E, v.humedad, 'Humedad final', 0, 100, false);
+  if (v.fechaSalida && v.fechaEntrada && v.fechaSalida < v.fechaEntrada) E.push('La salida de secado no puede ser antes de la entrada');
+  if (kgBaba && kgSeco) {
+    const f = kgSeco / kgBaba;
+    if (f < 0.30 || f > 0.45) W.push({ msg: `Factor ${f.toFixed(3)} fuera del rango esperado 0.30–0.45. ¿Confirmar?` });
+  }
+  if ((kgSeco !== null) !== !!v.fechaSalida) W.push({ msg: 'Para cerrar el lote faltan fecha de salida o kg secos; quedará ABIERTO. ¿Confirmar?' });
+  if (codigo && !E.length) {
+    const dup = (await DB.all('lotes')).find(r => r.id !== L.editId && r.codigo.toLowerCase() === codigo.toLowerCase());
+    if (dup) W.push({ msg: `Ya existe el lote ${dup.codigo}.`, action: { label: 'Editar el existente', fn: () => { loadLote(dup); formChanged(''); } } });
+  }
+  if (!gate(E, W)) return;
+  const old = L.editId ? await DB.get('lotes', L.editId) : null;
+  const cerrado = !!(v.fechaSalida && kgSeco);
+  const r = stamp(Object.assign(old || {}, { codigo, parcelas: v.parcelas, fechaEntrada: v.fechaEntrada, kgBaba, fechaSalida: v.fechaSalida || null, kgSeco, humedad, factor: kgBaba && kgSeco ? Math.round(kgSeco / kgBaba * 1000) / 1000 : null, estado: cerrado ? 'cerrado' : 'abierto' }));
+  try { await DB.put('lotes', r); } catch (e) { toast('Error al guardar: ' + e.message, 'err'); return; }
+  toast(`Lote ${codigo} guardado ✓ (${r.estado})`, 'ok');
+  L.editId = null; loteBanner();
+  setVals($('#lot'), { codigo: '', parcelas: [], fechaEntrada: today(), kgBaba: '', fechaSalida: '', kgSeco: '', humedad: '' });
+  showFactor(); await dropDraft('borrador_lotes'); await loteList(); updateStatus();
+}
+
+/* =====================================================================
+   FICHA DEL ÁRBOL (CLON) — rasgos del fruto, una ficha vigente por árbol
+   Clave de clones: CLAVE-CLONES.md v1 (20/10/2026). La sugerencia es solo ayuda.
+   ===================================================================== */
+const NO_ID = 'No identificado';
+const F_INM = [['Verde', 'Verde'], ['Rojo/morado', 'Rojo / morado'], ['Rojo con surcos verdes', 'Rojo con surcos verdes'], ['Otro', 'Otro']];
+const F_MAD = [['Amarillo', 'Amarillo'], ['Rojo anaranjado', 'Rojo anaranjado'], ['Anaranjado', 'Anaranjado'], ['No observado', 'No observado']];
+const F_FORMA = [['Cundeamor', 'Cundeamor (alargado, con cuello y punta)'], ['Amelonado', 'Amelonado (corto, redondeado, sin cuello)'], ['Angoleta', 'Angoleta (surcos profundos, base ancha)'], ['Calabacillo', 'Calabacillo (corto, casi redondo)'], ['Otra', 'Otra']];
+const F_SUP = [['Lisa', 'Lisa'], ['Ligeramente rugosa', 'Ligeramente rugosa'], ['Rugosa / verrugosa', 'Rugosa / verrugosa']];
+const F_PUNTA = [['Aguda', 'Aguda'], ['Obtusa', 'Obtusa'], ['Redondeada', 'Redondeada']];
+const F_CUELLO = [['Sí', 'Sí'], ['No', 'No']];
+const F_SEM = [['Morado oscuro', 'Morado oscuro'], ['Morado', 'Morado'], ['Morado claro / rosado', 'Morado claro / rosado'], ['Blanco', 'Blanco'], ['No observado', 'No observado']];
+const F_CONF = [['Alta', 'Alta'], ['Media', 'Media'], ['Baja', 'Baja']];
+const F_FIELDS = ['inmaduro', 'maduro', 'forma', 'superficie', 'punta', 'cuello', 'largo1', 'largo2', 'largo3', 'diametro', 'semilla', 'nSemillas', 'clon', 'confianza', 'nota'];
+const F_TRAITS = ['inmaduro', 'maduro', 'forma', 'superficie', 'punta', 'cuello', 'largo1', 'largo2', 'largo3', 'diametro', 'semilla', 'nSemillas'];
+// Rasgos por clon (CLAVE-CLONES.md). g: grupo de color del fruto joven; L: largo cm; ld: largo/diámetro; ns: semillas por fruto
+const CLONES_KEY = [
+  { c: 'ICS-95', g: 'rojo', forma: 'Cundeamor', sup: 'Rugosa / verrugosa', L: 19.3, ld: 2.47, sem: ['Morado', 'Morado claro / rosado'], ns: [32, 35] },
+  { c: 'ICS-1', g: 'rojo', surcos: 1, forma: 'Cundeamor', sup: 'Ligeramente rugosa', L: 17.7, ld: 2.03, sem: ['Morado'], ns: [43, 44] },
+  { c: 'UF-613', g: 'rojo', forma: 'Amelonado', sup: 'Lisa', L: 19.9, ld: 2.05, sem: ['Morado'], ns: [30, 37] },
+  { c: 'UF-221', g: 'rojo', surcos: 2, forma: 'Angoleta', sup: 'Ligeramente rugosa', L: 18.7, ld: 2.1, sem: ['Morado'], ns: [37, 41] },
+  { c: 'UF-677', g: 'verde', forma: 'Cundeamor', sup: 'Ligeramente rugosa', L: 20.4, ld: 2.02, sem: ['Morado claro / rosado'], ns: [36, 36] },
+  { c: 'ML-105', g: 'verde', forma: 'Cundeamor', formaParcial: 1, sup: 'Rugosa / verrugosa', L: null, ld: null, sem: ['Morado', 'Morado claro / rosado'], ns: [36, 36] },
+  { c: 'ML-106', g: 'verde', forma: 'Cundeamor', formaParcial: 1, sup: 'Rugosa / verrugosa', L: null, ld: null, sem: ['Morado'], ns: [37, 37] }
+];
+const fKey = (parcela, punto, arbol) => `${parcela}|${punto}|${arbol}`;
+// Ficha vigente de un árbol (si hubiera duplicadas por importación, la más reciente)
+function fichaDe(fichas, parcela, punto, arbol) {
+  return fichas.filter(f => f.parcela === parcela && f.punto === punto && f.arbol === arbol)
+    .sort((a, b) => (b.modificado || '').localeCompare(a.modificado || ''))[0] || null;
+}
+function fichaMapa(fichas) {
+  const m = new Map();
+  fichas.forEach(f => { const k = fKey(f.parcela, f.punto, f.arbol); const c = m.get(k); if (!c || (f.modificado || '') > (c.modificado || '')) m.set(k, f); });
+  return m;
+}
+// Cobertura: árboles vistos en Conteo que ya tienen ficha
+function fichaCobertura(conteo, fichas) {
+  const keys = new Set(conteo.map(r => fKey(r.parcela, r.punto, r.arbol))); const m = fichaMapa(fichas);
+  let con = 0; keys.forEach(k => { if (m.has(k)) con++; });
+  return { con, total: keys.size, fichas: m.size };
+}
+// Medidas calculadas: largo promedio y L/D
+function fichaMedidas(v) {
+  const ls = ['largo1', 'largo2', 'largo3'].map(k => pnum(v[k])).filter(n => n !== null && !Number.isNaN(n) && n >= 5 && n <= 35);
+  const d = pnum(v.diametro); const diam = d !== null && !Number.isNaN(d) && d >= 4 && d <= 15 ? d : null;
+  const prom = ls.length ? Math.round(ls.reduce((a, b) => a + b, 0) / ls.length * 100) / 100 : null;
+  const ld = prom !== null && diam ? Math.round(prom / diam * 100) / 100 : null;
+  const n = pnum(v.nSemillas); const ns = n !== null && Number.isInteger(n) && n >= 10 && n <= 70 ? n : null;
+  return { ls, prom, diam, ld, ns };
+}
+// Puntaje de coincidencia con cada clon; devuelve lista ordenada
+function sugerirClon(v) {
+  const m = fichaMedidas(v); const out = [];
+  const inmG = v.inmaduro === 'Verde' ? 'verde' : (v.inmaduro === 'Rojo/morado' || v.inmaduro === 'Rojo con surcos verdes') ? 'rojo' : null;
+  const madG = v.maduro === 'Amarillo' ? 'verde' : (v.maduro === 'Rojo anaranjado' || v.maduro === 'Anaranjado') ? 'rojo' : null;
+  let max = 0;
+  if (inmG) max += 3; if (madG) max += 1; if (v.forma && v.forma !== 'Otra') max += 2; if (v.superficie) max += 2;
+  if (m.ld !== null) max += 1.5; if (m.prom !== null) max += 1.5; if (v.semilla && v.semilla !== 'No observado') max += 2; if (m.ns !== null) max += 1.5;
+  for (const k of CLONES_KEY) {
+    let s = 0; const why = [];
+    if (inmG) {
+      if (v.inmaduro === 'Rojo con surcos verdes' && k.g === 'rojo') {
+        const p = k.surcos === 2 ? 3 : k.surcos === 1 ? 2 : 1; s += p; if (k.surcos) why.push('rojo con surcos verdes');
+      } else if (inmG === k.g) { s += 3; why.push(k.g === 'verde' ? 'verde' : 'rojo/morado'); }
+    }
+    if (madG && madG === k.g) { s += 1; why.push('maduro ' + v.maduro.toLowerCase()); }
+    if (v.forma && v.forma !== 'Otra') {
+      if (v.forma === k.forma) { s += k.formaParcial ? 1 : 2; why.push(k.formaParcial ? 'alargado' : v.forma.toLowerCase()); }
+      else if (v.forma === 'Calabacillo' && k.c === 'UF-613') { s += 1; why.push('corto'); }
+    }
+    if (v.superficie && v.superficie === k.sup) { s += 2; why.push(k.c === 'ML-105' ? 'muy rugosa' : v.superficie.toLowerCase()); }
+    if (m.ld !== null && k.ld !== null && Math.abs(m.ld - k.ld) <= 0.25) { s += 1.5; why.push(`L/D ${m.ld} ≈ ${k.ld}`); }
+    if (m.prom !== null && k.L !== null && Math.abs(m.prom - k.L) <= 1.5) { s += 1.5; why.push(`largo ${fmtCm(m.prom)} ≈ ${k.L} cm`); }
+    if (v.semilla && v.semilla !== 'No observado') {
+      if (k.sem.includes(v.semilla)) { s += 2; why.push('semilla ' + v.semilla.toLowerCase()); }
+      else if (v.semilla === 'Morado oscuro' && k.sem.includes('Morado')) { s += 1; why.push('semilla morada'); }
+    }
+    if (m.ns !== null && m.ns >= k.ns[0] - 3 && m.ns <= k.ns[1] + 3) { s += 1.5; why.push(`${m.ns} semillas`); }
+    out.push({ c: k.c, s: Math.round(s * 10) / 10, why });
+  }
+  out.sort((a, b) => b.s - a.s);
+  return { list: out, max, medidas: m };
+}
+const sugTop = v => { const r = sugerirClon(v); return r.max > 0 && r.list[0].s > 0 ? r.list[0].c : ''; };
+
+let F = { editId: null, fParc: '', fClon: '' };
+async function renderFicha(params) {
+  const tab = params.get('tab') === 'lista' ? 'lista' : 'form';
+  F.editId = null;
+  const [conteo, fichas] = await Promise.all([DB.all('conteo'), DB.all('fichas')]);
+  const cob = fichaCobertura(conteo, fichas);
+  $('#main').innerHTML = `<h2 class="ttl">Ficha del árbol (clon)</h2>
+    <div class="tabs"><button type="button" data-ft="form" class="${tab === 'form' ? 'sel' : ''}">Ficha</button><button type="button" data-ft="lista" class="${tab === 'lista' ? 'sel' : ''}">Lista (${cob.con}/${cob.total})</button></div>
+    <div id="ficBody"></div>`;
+  $$('[data-ft]').forEach(b => b.addEventListener('click', () => go(b.dataset.ft === 'lista' ? '#/ficha?tab=lista' : '#/ficha')));
+  if (tab === 'lista') await fichaLista(conteo, fichas); else await fichaForm(params, fichas);
+}
+
+async function fichaForm(params, fichas) {
+  const clones = [...S.materiales.filter(m => m !== NO_ID), NO_ID];
+  $('#ficBody').innerHTML = `<form id="fic" autocomplete="off" onsubmit="return false">
+    <section class="card"><div id="editBanner"></div><h3>Árbol</h3>
+      ${fSelect('parcela', 'Parcela', S.parcelas)}
+      <div class="grid2">${stepper('punto', 'Punto # (1–20)', 1, 20)}${stepper('arbol', 'Árbol # (1–40)', 1, 40)}</div>
+      ${fDate('fecha', 'Fecha')}
+      <div id="ficExist"></div>
+    </section>
+    <section class="card"><h3>Fruto</h3>
+      ${seg('inmaduro', 'Color del fruto inmaduro', F_INM)}
+      ${seg('maduro', 'Color del fruto maduro', F_MAD)}
+      <div class="fld"><span>Forma</span><div class="seg col" data-name="forma">${F_FORMA.map(([v, l]) => `<button type="button" data-val="${esc(v)}">${esc(l)}</button>`).join('')}</div></div>
+      ${seg('superficie', 'Superficie', F_SUP)}
+      ${seg('punta', 'Punta (ápice)', F_PUNTA)}
+      ${seg('cuello', 'Cuello (constricción basal)', F_CUELLO)}
+      <h4>Mazorcas maduras (cm)</h4>
+      <div class="grid3">${fDec('largo1', 'Largo 1', '5–35')}${fDec('largo2', 'Largo 2', '5–35')}${fDec('largo3', 'Largo 3', '5–35')}</div>
+      ${fDec('diametro', 'Diámetro cm (opcional)', '4–15')}
+      <div class="live" id="ficCalc"></div>
+      <h4>Semilla fresca</h4>
+      ${seg('semilla', 'Color de la semilla fresca', F_SEM)}
+      <div class="fld"><span>Número de semillas (opcional)</span><input name="nSemillas" inputmode="numeric" pattern="[0-9]*" placeholder="10–70" autocomplete="off"></div>
+    </section>
+    <section class="card" style="border-color:var(--dorado)"><h3>Clon sugerido</h3><div id="ficSug"></div></section>
+    <section class="card"><h3>Asignación</h3>
+      ${fSelect('clon', 'Clon asignado', clones)}
+      ${seg('confianza', 'Confianza', F_CONF)}
+      ${fText('nota', 'Nota (opcional)', 'Observación corta', 'maxlength="140"')}
+    </section>
+  </form>`;
+  saveBar('Guardar ficha');
+  const frm = $('#fic');
+  const id = params.get('id'); const pParc = params.get('parcela');
+  const draft = await loadDraft('borrador_ficha');
+  const draftHasTraits = draft && draft.vals && F_TRAITS.some(k => draft.vals[k]);
+  if (id) {
+    const r = await DB.get('fichas', id);
+    if (r) loadFicha(r); else { toast('Ficha no encontrada', 'err'); setVals(frm, { fecha: today() }); }
+  } else if (pParc) {
+    const punto = pnum(params.get('punto')), arbol = pnum(params.get('arbol'));
+    const ex = fichaDe(fichas, pParc, punto, arbol);
+    const dk = draft && draft.vals ? fKey(draft.vals.parcela, pnum(draft.vals.punto), pnum(draft.vals.arbol)) : '';
+    let useDraft = false;
+    if (draftHasTraits && !draft.editId && dk !== fKey(pParc, punto, arbol)) {
+      useDraft = !await confirmar('Ficha sin guardar', `Hay una ficha sin guardar de ${esc(draft.vals.parcela || '?')} · punto ${esc(draft.vals.punto)} · árbol ${esc(draft.vals.arbol)}. ¿Descartarla y abrir la del árbol ${esc(arbol)}?`, 'Descartar y abrir');
+    }
+    if (useDraft) { setVals(frm, draft.vals); F.editId = draft.editId || null; }
+    else if (ex) loadFicha(ex);
+    else setVals(frm, { parcela: pParc, punto, arbol, fecha: today() });
+    history.replaceState(null, '', '#/ficha');
+  } else if (draft) {
+    setVals(frm, draft.vals); F.editId = draft.editId || null;
+  } else setVals(frm, { fecha: today(), punto: 1 });
+  ficBanner();
+  ctx = {
+    draftKey: 'borrador_ficha',
+    draft: () => ({ vals: getVals(frm), editId: F.editId }),
+    onChange: async name => { updateFichaCalc(); if (['parcela', 'punto', 'arbol', ''].includes(name)) await ficExist(); }
+  };
+  updateFichaCalc(); await ficExist();
+  $('#btnSave').addEventListener('click', saveFicha);
+}
+function loadFicha(r) {
+  const o = { parcela: r.parcela, punto: r.punto, arbol: r.arbol, fecha: r.fecha };
+  F_FIELDS.forEach(k => { o[k] = nz(r[k]); });
+  setVals($('#fic'), o); F.editId = r.id; ficBanner();
+}
+function ficBanner() {
+  const b = $('#editBanner'); if (!b) return;
+  b.innerHTML = F.editId ? `<div class="editing">Editando ficha guardada <button type="button" class="btn sec sm" id="btnFicNueva" style="margin-left:6px">Nueva ficha</button></div>` : '';
+  const n = $('#btnFicNueva');
+  if (n) n.addEventListener('click', async () => {
+    const v = getVals($('#fic')); const o = { arbol: '' }; F_FIELDS.forEach(k => { o[k] = ''; });
+    F.editId = null; setVals($('#fic'), Object.assign(o, { parcela: v.parcela, punto: v.punto, fecha: today() }));
+    ficBanner(); updateFichaCalc(); await ficExist(); formChanged('arbol'); window.scrollTo(0, 0);
+  });
+}
+async function ficExist() {
+  const box = $('#ficExist'); const frm = $('#fic'); if (!box || !frm) return;
+  const v = getVals(frm); const punto = pnum(v.punto), arbol = pnum(v.arbol);
+  if (!v.parcela || !Number.isInteger(punto) || !Number.isInteger(arbol)) { box.innerHTML = ''; return; }
+  const ex = fichaDe(await DB.all('fichas'), v.parcela, punto, arbol);
+  if (ex && ex.id !== F.editId) {
+    box.innerHTML = `<div class="msg warn">⚠ Este árbol ya tiene ficha: ${esc(ex.clon || 'sin clon')}${ex.confianza ? ` (${esc(ex.confianza)})` : ''} · ${fmtD(ex.fecha)}${F.editId ? '' : '. Al guardar se actualizará.'}<br><button type="button" class="btn sec sm" id="btnFicAbrir">Abrir ficha existente</button></div>`;
+    $('#btnFicAbrir').addEventListener('click', async () => { loadFicha(ex); updateFichaCalc(); await ficExist(); formChanged(''); });
+  } else box.innerHTML = '';
+}
+function updateFichaCalc() {
+  const frm = $('#fic'); if (!frm) return; const v = getVals(frm);
+  const r = sugerirClon(v); const m = r.medidas;
+  const c = $('#ficCalc');
+  if (c) c.innerHTML = `Largo promedio: <span class="calc">${m.prom !== null ? fmtCm(m.prom) + ' cm' : '—'}</span> · L/D: <span class="calc">${m.ld !== null ? m.ld.toFixed(2) : '—'}</span>${m.ls.length ? ` <span class="muted">(${m.ls.length} mazorca${m.ls.length > 1 ? 's' : ''})</span>` : ''}`;
+  const box = $('#ficSug'); if (!box) return;
+  if (!r.max || r.list[0].s <= 0) { box.innerHTML = '<p class="muted">Marca rasgos del fruto para ver una sugerencia. Es solo una ayuda: tú eliges el clon asignado.</p>'; return; }
+  const top = r.list.slice(0, 2).filter(x => x.s > 0);
+  const ml = top.some(x => x.c === 'ML-105' || x.c === 'ML-106');
+  box.innerHTML = top.map((x, i) => `<div class="sug" ${i ? 'style="border-color:var(--arena);background:var(--blanco)"' : ''}><b>${i + 1}. ${esc(x.c)}</b> <span class="bdg ${i ? '' : 'gold'}">${Math.round(x.s / r.max * 100)} %</span><small>coincide: ${esc(x.why.join(', ') || '—')}</small></div>`).join('')
+    + (ml ? '<p class="msg warn">⚠ ML-105 y ML-106 se parecen mucho; confirmar con semilla o prueba genética.</p>' : '')
+    + `<button type="button" class="btn gold full" id="btnUsarSug">Usar sugerido (${esc(top[0].c)})</button>
+       <p class="muted small">Clave de campo v1. Los clones de cada parcela no están confirmados en campo.</p>`;
+  $('#btnUsarSug').addEventListener('click', () => { setVals(frm, { clon: top[0].c }); formChanged('clon'); toast(`Clon asignado: ${top[0].c}`); });
+}
+async function saveFicha() {
+  if (!await requireUser()) return;
+  const frm = $('#fic'); const v = getVals(frm); const E = [], W = [];
+  if (!v.parcela) E.push('Parcela: elige una');
+  const punto = vInt(E, v.punto, 'Punto #', 1, 20, true);
+  const arbol = vInt(E, v.arbol, 'Árbol #', 1, 40, true);
+  if (!v.fecha) E.push('Fecha: obligatoria'); else if (v.fecha > today()) W.push({ msg: 'La fecha está en el futuro. ¿Confirmar?' });
+  const largos = ['largo1', 'largo2', 'largo3'].map((k, i) => vDec(E, v[k], `Largo ${i + 1}`, 5, 35, false));
+  const diametro = vDec(E, v.diametro, 'Diámetro cm', 4, 15, false);
+  const nSemillas = vInt(E, v.nSemillas, 'Número de semillas', 10, 70, false);
+  if (!v.clon) E.push(`Clon asignado: elige uno (o «${NO_ID}»)`);
+  else if (v.clon !== NO_ID && !v.confianza) E.push('Confianza: elige Alta, Media o Baja');
+  const m = fichaMedidas(v);
+  if (m.ld !== null && (m.ld < 1.3 || m.ld > 3.2)) W.push({ msg: `L/D = ${m.ld.toFixed(2)} es poco común (lo normal es 1.8–2.6). ¿Confirmar medidas?` });
+  if (!F_TRAITS.some(k => v[k])) W.push({ msg: 'No hay rasgos del fruto anotados. ¿Guardar así?' });
+  let target = null;
+  if (!E.length) {
+    target = fichaDe((await DB.all('fichas')).filter(f => f.id !== F.editId), v.parcela, punto, arbol);
+    if (target && F.editId) E.push(`Ya existe otra ficha para ${v.parcela} · punto ${punto} · árbol ${arbol}. Ábrela desde la lista para editarla.`);
+    else if (target) W.push({ msg: `Este árbol ya tiene ficha (${target.clon || 'sin clon'}, ${fmtD(target.fecha)}). Se actualizará. ¿Confirmar?` });
+  }
+  if (!gate(E, W)) return;
+  const old = F.editId ? await DB.get('fichas', F.editId) : target;
+  const r = Object.assign(old || {}, {
+    parcela: v.parcela, punto, arbol, fecha: v.fecha,
+    inmaduro: v.inmaduro || '', maduro: v.maduro || '', forma: v.forma || '', superficie: v.superficie || '', punta: v.punta || '', cuello: v.cuello || '',
+    largo1: largos[0], largo2: largos[1], largo3: largos[2], largoProm: m.prom, diametro, ld: m.ld,
+    semilla: v.semilla || '', nSemillas, sugerido: sugTop(v), clon: v.clon, confianza: v.confianza || '', nota: (v.nota || '').trim()
+  });
+  stamp(r); // conserva id y creado; actualiza modificado; exportado = false
+  try { await DB.put('fichas', r); } catch (e) { console.error(e); toast('Error al guardar: ' + e.message, 'err'); return; }
+  toast(`Ficha del árbol ${arbol} guardada ✓ (${r.clon})`, 'ok');
+  // Siguiente árbol del mismo punto
+  const o = {}; F_FIELDS.forEach(k => { o[k] = ''; });
+  F.editId = null;
+  setVals(frm, Object.assign(o, { parcela: v.parcela, punto, arbol: Math.min(40, arbol + 1), fecha: v.fecha }));
+  ficBanner(); updateFichaCalc(); await ficExist(); await saveDraft(); updateStatus();
+  window.scrollTo(0, 0);
+}
+
+async function fichaLista(conteo, fichas) {
+  const fm = fichaMapa(fichas);
+  const trees = new Map();
+  conteo.forEach(r => { const k = fKey(r.parcela, r.punto, r.arbol); if (!trees.has(k)) trees.set(k, { parcela: r.parcela, punto: r.punto, arbol: r.arbol, conteo: true }); });
+  fm.forEach((f, k) => { const t = trees.get(k) || { parcela: f.parcela, punto: f.punto, arbol: f.arbol, conteo: false }; t.f = f; trees.set(k, t); });
+  const cob = fichaCobertura(conteo, fichas);
+  const porClon = {}; fm.forEach(f => { const c = f.clon || 'sin clon'; porClon[c] = (porClon[c] || 0) + 1; });
+  const parcs = [...new Set([...trees.values()].map(t => t.parcela))].sort();
+  const clonesUsados = Object.keys(porClon).sort();
+  $('#ficBody').innerHTML = `<section class="card">
+      <div class="kpi"><div><b>${cob.con} / ${cob.total}</b><span>árboles del conteo con ficha</span></div><div><b>${fm.size}</b><span>fichas en total</span></div></div>
+      ${clonesUsados.length ? `<p class="small" style="margin:10px 0 0">${clonesUsados.map(c => `<span class="bdg" style="margin:2px">${esc(c)}: ${porClon[c]}</span>`).join(' ')}</p>` : ''}
+    </section>
+    <section class="card">
+      <div class="grid2"><div class="fld"><span>Parcela</span><select id="flParc"><option value="">Todas</option>${parcs.map(p => `<option ${p === F.fParc ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
+      <div class="fld"><span>Clon / estado</span><select id="flClon"><option value="">Todos</option><option value="__sin" ${F.fClon === '__sin' ? 'selected' : ''}>Sin ficha</option>${clonesUsados.map(c => `<option ${c === F.fClon ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></div></div>
+      <div id="flList"></div>
+    </section>
+    <button type="button" class="btn pri full" data-go="#/ficha">+ Nueva ficha</button>`;
+  const draw = () => {
+    const list = [...trees.values()].filter(t => (!F.fParc || t.parcela === F.fParc) && (!F.fClon || (F.fClon === '__sin' ? !t.f : t.f && (t.f.clon || 'sin clon') === F.fClon)))
+      .sort((a, b) => a.parcela.localeCompare(b.parcela) || a.punto - b.punto || a.arbol - b.arbol);
+    let html = '', cur = null, n = 0;
+    for (const t of list.slice(0, 400)) {
+      if (t.parcela !== cur) { if (cur !== null) html += '</ul>'; cur = t.parcela; html += `<h4>${esc(cur)}</h4><ul class="list">`; }
+      const q = `parcela=${encodeURIComponent(t.parcela)}&punto=${t.punto}&arbol=${t.arbol}`;
+      html += `<li><div class="info"><b>Punto ${t.punto} · Árbol ${t.arbol}${t.f ? ` · ${esc(t.f.clon || 'sin clon')}` : ''}</b><small>${t.f ? `${t.f.confianza ? 'Confianza ' + esc(t.f.confianza) + ' · ' : ''}${t.f.sugerido ? 'sugerido ' + esc(t.f.sugerido) + ' · ' : ''}${fmtD(t.f.fecha)}${t.f.exportado ? ' · enviado' : ''}` : '<span class="bdg warn">Sin ficha</span>'}${t.conteo ? '' : ' · no está en Conteo'}</small></div>
+        ${t.f ? `<button type="button" class="btn sec sm" data-go="#/ficha?id=${esc(t.f.id)}">Editar</button>` : `<button type="button" class="btn gold sm" data-go="#/ficha?${esc(q)}">Crear</button>`}</li>`;
+      n++;
+    }
+    if (cur !== null) html += '</ul>';
+    $('#flList').innerHTML = html || '<p class="muted">No hay árboles con este filtro. Los árboles aparecen al registrarlos en Conteo o al crear su ficha.</p>';
+    if (list.length > 400) $('#flList').innerHTML += '<p class="muted">Se muestran los primeros 400.</p>';
+    $$('[data-go]', $('#flList')).forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+  };
+  $('#flParc').addEventListener('change', e => { F.fParc = e.target.value; draw(); });
+  $('#flClon').addEventListener('change', e => { F.fClon = e.target.value; draw(); });
+  $$('#ficBody > [data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+  draw();
+}
+
+/* =====================================================================
+   REGISTROS
+   ===================================================================== */
+const REG = [
+  { s: 'conteo', l: 'Conteo', t: r => `${r.parcela} · Punto ${r.punto} · Árbol ${r.arbol}`, d: r => `Ronda ${r.ronda} · ${fmtD(r.fecha)} · ${sanasDe(r)} sanas`, e: r => `#/conteo?id=${r.id}` },
+  { s: 'pods', l: 'Mazorcas', t: r => r.codigo, d: r => `${ESTADOS_POD[r.estado]}${r.causa ? ' · ' + r.causa : ''} · marcada ${fmtD(r.fechaMarcaje)}`, e: r => `#/psm?pod=${r.id}` },
+  { s: 'visits', l: 'Visitas PSM', t: r => `${r.codigo} · ${ESTADOS_POD[r.estado]}`, d: r => `${fmtD(r.fecha)}${r.causa ? ' · ' + r.causa : ''}${r.largo ? ' · ' + r.largo + ' cm' : ''}`, e: null },
+  { s: 'fenologia', l: 'Fenología PSM', t: r => `${r.parcela} · Árbol ${r.arbol}`, d: r => fmtD(r.fecha), e: null },
+  { s: 'clima', l: 'Clima', t: r => `${fmtD(r.fecha)} · ${r.lluvia} mm`, d: r => r.estacion, e: r => `#/clima?id=${r.id}` },
+  { s: 'lotes', l: 'Lotes', t: r => r.codigo, d: r => `${r.estado} · ${r.kgBaba} kg baba${r.factor ? ' · factor ' + r.factor : ''}`, e: r => `#/lotes?id=${r.id}` },
+  { s: 'fichas', l: 'Fichas de árbol', t: r => `${r.parcela} · Punto ${r.punto} · Árbol ${r.arbol}`, d: r => `${r.clon || 'sin clon'}${r.confianza ? ' (' + r.confianza + ')' : ''} · ${fmtD(r.fecha)}`, e: r => `#/ficha?id=${r.id}` }
+];
+let R = { mod: 'conteo', filtro: 'pend' };
+async function renderRegistros() {
+  const all = {}; for (const m of REG) all[m.s] = await DB.all(m.s);
+  const m = REG.find(x => x.s === R.mod) || REG[0];
+  const list = all[m.s].filter(r => R.filtro === 'todos' || !r.exportado).sort((a, b) => (b.modificado || '').localeCompare(a.modificado || ''));
+  $('#main').innerHTML = `<h2 class="ttl">Registros</h2>
+    <div class="fld"><span>Módulo</span><select id="regMod">${REG.map(x => `<option value="${x.s}" ${x.s === m.s ? 'selected' : ''}>${x.l} (${all[x.s].filter(r => !r.exportado).length} sin enviar / ${all[x.s].length})</option>`).join('')}</select></div>
+    <div class="tabs"><button type="button" data-f="pend" class="${R.filtro === 'pend' ? 'sel' : ''}">No exportados</button><button type="button" data-f="todos" class="${R.filtro === 'todos' ? 'sel' : ''}">Todos</button></div>
+    <section class="card"><ul class="list">${list.slice(0, 300).map(r => `<li><div class="info"><b>${esc(m.t(r))}</b><small>${esc(m.d(r))} · ${esc(r.registrador)}${r.exportado ? ' · <span class="bdg ok">enviado</span>' : ''}</small></div>
+      ${m.e ? `<button type="button" class="btn sec sm" data-e="${r.id}">Editar</button>` : ''}<button type="button" class="btn danger sm" data-d="${r.id}">${m.s === 'visits' ? 'Deshacer' : 'Borrar'}</button></li>`).join('') || '<li class="muted">No hay registros.</li>'}</ul>
+      ${list.length > 300 ? '<p class="muted">Se muestran los 300 más recientes.</p>' : ''}</section>`;
+  $('#regMod').addEventListener('change', e => { R.mod = e.target.value; renderRegistros(); });
+  $$('[data-f]').forEach(b => b.addEventListener('click', () => { R.filtro = b.dataset.f; renderRegistros(); }));
+  $$('[data-e]').forEach(b => b.addEventListener('click', async () => { const r = all[m.s].find(x => x.id === b.dataset.e); if (m.s === 'pods') P.tab = 'marcar'; go(m.e(r)); }));
+  $$('[data-d]').forEach(b => b.addEventListener('click', async () => {
+    const r = all[m.s].find(x => x.id === b.dataset.d); if (!r) return;
+    if (m.s === 'visits') {
+      const vs = all.visits.filter(x => x.podId === r.podId).sort((a, c) => (a.fecha + a.creado).localeCompare(c.fecha + c.creado));
+      if (vs[vs.length - 1].id !== r.id) { toast('Solo se puede deshacer la última revisión de cada mazorca', 'err'); return; }
+      await undoLastVisit(r.podId); renderRegistros(); return;
+    }
+    const extra = m.s === 'pods' ? ' También se borrarán sus visitas.' : '';
+    if (!await confirmar('Borrar registro', `¿Borrar «${esc(m.t(r))}»?${extra}${r.exportado ? '' : ' <b>Aún no se ha exportado.</b>'}`, 'Borrar', true)) return;
+    await DB.del(m.s, r.id);
+    if (m.s === 'pods') await DB.delMany('visits', all.visits.filter(x => x.podId === r.id).map(x => x.id));
+    toast('Registro borrado'); renderRegistros(); updateStatus();
+  }));
+}
+
+/* =====================================================================
+   EXPORTACIÓN A EXCEL
+   ===================================================================== */
+const SHEETS = {
+  Conteo: ['Ronda', 'Fecha', 'Parcela', 'Punto', 'Árbol', 'Material', 'MP 2.5-7 cm', 'P 7.1-14 cm', 'M 14.1-21 cm', 'G más de 21 cm', 'Dañadas', 'Maduras', 'Negra', 'Ratas', 'Pájaros', 'Insectos', 'Otra', 'Cherelles sanos', 'Cherelles marchitos', 'Floración', 'Brotación', 'Defoliación', 'Muerte regresiva', 'Vigor', 'Sobre 2.5 m', 'Nota', 'Lat', 'Lon', 'Precisión GPS', 'Productivos punto', 'Improductivos punto', 'Fallas punto', 'Registrador', 'Dispositivo', 'ID', 'Clon (ficha)', 'Límites usados (cm)'],
+  PSM_registro: ['Estrato', 'Parcela', 'Árbol', 'Mazorca', 'Clase al marcar', 'Fecha de marcaje', 'Fecha del último registro o evento', 'Estado', 'Causa si murió', 'Largo último (cm)', 'Estrato altura', 'Largo al marcar', 'Diámetro al marcar', 'Registrador', 'ID', 'Cohorte (cinta)'],
+  PSM_visitas: ['Fecha', 'Parcela', 'Árbol', 'Mazorca', 'Estado', 'Causa', 'Largo', 'Registrador', 'ID visita', 'ID mazorca'],
+  Fenologia: ['Fecha', 'Parcela', 'Árbol', 'Origen', 'Cherelles sanos', 'Cherelles marchitos', 'Floración', 'Brotación', 'Defoliación', 'Muerte regresiva', 'Vigor', 'Registrador', 'ID'],
+  Clima: ['Estación', 'Fecha', 'Hora', 'Lluvia mm', 'T máx', 'T mín', 'HR %', 'Eventos', 'Nota', 'Registrador', 'ID'],
+  Baba_seco: ['Lote', 'Parcelas', 'Fecha entrada', 'Kg baba', 'Fecha salida', 'Kg seco', 'Humedad %', 'Factor', 'Estado', 'Registrador', 'ID'],
+  Fichas: ['Parcela', 'Punto', 'Árbol', 'Fecha', 'Color inmaduro', 'Color maduro', 'Forma', 'Superficie', 'Punta', 'Cuello', 'Largo 1', 'Largo 2', 'Largo 3', 'Largo promedio', 'Diámetro', 'L/D', 'Color semilla', 'Semillas', 'Clon sugerido', 'Clon asignado', 'Confianza', 'Nota', 'Registrador', 'Dispositivo', 'ID']
+};
+const DATE_COLS = { Conteo: [1], PSM_registro: [5, 6], PSM_visitas: [0], Fenologia: [0], Clima: [1], Baba_seco: [2, 4], Fichas: [3] };
+const fenoVals = r => FENO.map(f => nz(r[f.k]));
+const hasFenoVals = r => FENO.some(f => r[f.k] !== null && r[f.k] !== undefined && r[f.k] !== '');
+
+async function collectExport(scope) {
+  const d = {};
+  for (const s of DATA_STORES) d[s] = (await DB.all(s)).filter(r => scope === 'todo' || !r.exportado);
+  const by = (k) => (a, b) => String(a[k] || '').localeCompare(String(b[k] || ''));
+  d.conteo.sort((a, b) => (a.ronda + a.parcela).localeCompare(b.ronda + b.parcela) || a.punto - b.punto || a.arbol - b.arbol);
+  d.pods.sort(by('codigo')); d.visits.sort((a, b) => (a.fecha + a.codigo).localeCompare(b.fecha + b.codigo));
+  d.clima.sort((a, b) => (a.fecha + a.estacion).localeCompare(b.fecha + b.estacion)); d.lotes.sort(by('fechaEntrada'));
+  d.fichas.sort((a, b) => a.parcela.localeCompare(b.parcela) || a.punto - b.punto || a.arbol - b.arbol);
+  const fm = fichaMapa(await DB.all('fichas')); // clon asignado de cada árbol (todas las fichas, no solo las pendientes)
+  const clonDe = r => { const f = fm.get(fKey(r.parcela, r.punto, r.arbol)); return f ? (f.clon || '') : ''; };
+  const rows = {
+    Conteo: d.conteo.map(r => [r.ronda, r.fecha, r.parcela, r.punto, r.arbol, r.material, r.mp, r.p, r.m, r.g, danadasDe(r), r.mad, r.negra, r.ratas, r.pajaros, r.insectos, r.otra, ...fenoVals(r), nz(r.sobre25), r.nota || '', nz(r.lat), nz(r.lon), nz(r.prec), nz(r.prod), nz(r.improd), nz(r.fallas), r.registrador, r.dispositivo, r.id, clonDe(r), limStr(r.limites)]),
+    PSM_registro: d.pods.map(p => [p.material, p.parcela, p.arbol, p.codigo, p.clase, p.fechaMarcaje, lastCheck(p), p.estado, p.causa || '', nz(p.largoUltimo ?? p.largo), p.estratoAltura, p.largo, nz(p.diametro), p.registrador, p.id, p.cinta || '']),
+    PSM_visitas: d.visits.map(x => [x.fecha, x.parcela, x.arbol, x.codigo, x.estado, x.causa || '', nz(x.largo), x.registrador, x.id, x.podId]),
+    Fenologia: [
+      ...d.conteo.filter(hasFenoVals).map(r => [r.fecha, r.parcela, r.arbol, 'Conteo', ...fenoVals(r), r.registrador, r.id]),
+      ...d.fenologia.map(r => [r.fecha, r.parcela, r.arbol, 'PSM', ...fenoVals(r), r.registrador, r.id])
+    ].sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    Clima: d.clima.map(r => [r.estacion, r.fecha, r.hora, r.lluvia, nz(r.tmax), nz(r.tmin), nz(r.hr), (r.eventos || []).map(e => (EVENTOS.find(x => x[0] === e) || [e, e])[1]).join(', '), r.nota || '', r.registrador, r.id]),
+    Baba_seco: d.lotes.map(l => [l.codigo, (l.parcelas || []).join(', '), l.fechaEntrada, l.kgBaba, l.fechaSalida || '', nz(l.kgSeco), nz(l.humedad), nz(l.factor), l.estado, l.registrador, l.id]),
+    Fichas: d.fichas.map(f => [f.parcela, f.punto, f.arbol, f.fecha, f.inmaduro || '', f.maduro || '', f.forma || '', f.superficie || '', f.punta || '', f.cuello || '', nz(f.largo1), nz(f.largo2), nz(f.largo3), nz(f.largoProm), nz(f.diametro), nz(f.ld), f.semilla || '', nz(f.nSemillas), f.sugerido || '', f.clon || '', f.confianza || '', f.nota || '', f.registrador, f.dispositivo, f.id])
+  };
+  const ids = {}; DATA_STORES.forEach(s => { ids[s] = d[s].map(r => r.id); });
+  const total = DATA_STORES.reduce((a, s) => a + ids[s].length, 0);
+  return { rows, ids, total };
+}
+function buildSheet(name, rows) {
+  const ws = XLSX.utils.aoa_to_sheet([SHEETS[name], ...rows]);
+  (DATE_COLS[name] || []).forEach(c => {
+    rows.forEach((row, i) => {
+      const v = row[c]; if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+      ws[XLSX.utils.encode_cell({ r: i + 1, c })] = { t: 'n', v: excelSerial(v), z: 'dd/mm/yyyy' };
+    });
+  });
+  ws['!cols'] = SHEETS[name].map((h, c) => ({ wch: Math.min(40, Math.max(h.length + 2, ...rows.slice(0, 200).map(r => String(r[c] ?? '').length + 1))) }));
+  if (rows.length) ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rows.length, c: SHEETS[name].length - 1 } }) };
+  return ws;
+}
+function buildWorkbook(rows, scope) {
+  const wb = XLSX.utils.book_new(); const now = new Date();
+  Object.keys(SHEETS).forEach(n => XLSX.utils.book_append_sheet(wb, buildSheet(n, rows[n]), n));
+  const info = [['Campo', 'Valor'], ['Dispositivo', S.dispositivo], ['Registrador', S.registrador], ['Fecha de exportación', null], ['Versión de la app', APP_VERSION], ['Alcance', scope === 'todo' ? 'Todo' : 'Solo no exportados'],
+    ...Object.keys(SHEETS).map(n => [`Filas ${n}`, rows[n].length]),
+    ['Leyenda Estado PSM', '0 viva, 1 muerta, 2 cosechada'], ['Leyenda Brotación / Muerte regresiva', '1 = Sí, 0 = No'], ['Límites de tamaño vigentes (cm)', limStr(curLim())], ['Clon sugerido (Fichas)', 'Ayuda según clave de campo v1; el clon asignado lo decide el registrador'], ['Fuente', 'App Bayacao Registro de Campo – finca Bayaguana'], ['Uso', 'Grupo Bayacao – Uso interno']];
+  const ws = XLSX.utils.aoa_to_sheet(info);
+  ws['B4'] = { t: 'n', v: (now.getTime() - now.getTimezoneOffset() * 60000 - Date.UTC(1899, 11, 30)) / 864e5, z: 'dd/mm/yyyy hh:mm' };
+  ws['!cols'] = [{ wch: 36 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, ws, 'Info');
+  return wb;
+}
+// Compartir (WhatsApp, correo, OneDrive) o descargar
+async function shareOrDownload(blob, fname, title) {
+  const file = new File([blob], fname, { type: blob.type });
+  try {
+    if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title, text: title });
+      return 'shared';
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return 'aborted';
+    console.warn('share falló, se descarga', e);
+  }
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+  return 'downloaded';
+}
+async function renderExportar() {
+  const pend = await collectExport('pend'); const all = await collectExport('todo');
+  const counts = x => Object.keys(SHEETS).map(n => `<li><div class="info"><b>${n}</b></div><span class="bdg">${x.rows[n].length}</span></li>`).join('');
+  $('#main').innerHTML = `<h2 class="ttl">Exportar Excel</h2>
+    <section class="card">
+      <p class="muted">Equipo <b>${esc(S.dispositivo)}</b> · ${navigator.onLine ? 'En línea' : 'Sin señal (puedes generar el archivo y compartirlo luego)'}</p>
+      ${seg('scope', 'Qué exportar', [['pend', `Solo no exportados (${pend.total})`], ['todo', `Todo (${all.total})`]])}
+      <ul class="list" id="expCounts">${counts(pend)}</ul>
+      ${S.ultimaExport ? `<p class="muted">Última exportación confirmada: ${fmtDT(S.ultimaExport)}</p>` : ''}
+    </section>
+    <p class="muted small">Después de compartir o descargar, la app pregunta «¿Se envió bien?». Solo al responder «Sí» se marcan como exportados.</p>`;
+  saveBar('Exportar Excel');
+  setVals($('#main'), { scope: 'pend' });
+  ctx = { onChange: name => { if (name === 'scope') { const sc = getVals($('#main')).scope || 'pend'; $('#expCounts').innerHTML = counts(sc === 'todo' ? all : pend); } } };
+  $('#btnSave').addEventListener('click', doExport);
+}
+async function doExport() {
+  if (!await requireUser()) return;
+  if (typeof XLSX === 'undefined') { toast('Falta la librería de Excel (xlsx.full.min.js)', 'err'); return; }
+  const scope = getVals($('#main')).scope || 'pend';
+  const data = await collectExport(scope);
+  if (!data.total) { toast(scope === 'pend' ? 'No hay registros sin exportar' : 'No hay registros', 'err'); return; }
+  const b = $('#btnSave'); b.disabled = true; b.textContent = 'Generando…';
+  try {
+    const wb = buildWorkbook(data.rows, scope); const d = new Date();
+    const fname = `Bayacao_campo_${S.dispositivo}_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.xlsx`;
+    const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array', compression: true });
+    const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const res = await shareOrDownload(blob, fname, 'Datos de campo Bayacao');
+    if (res === 'aborted') { toast('Envío cancelado; nada se marcó como exportado'); return; }
+    const ok = await modal({ title: '¿Se envió bien?', body: `<p>Archivo <b>${esc(fname)}</b> con ${data.total} registros.</p><p>Responde «Sí» solo si llegó a su destino (WhatsApp, correo, OneDrive).</p>`, buttons: [{ label: 'No', val: false, cls: 'sec' }, { label: 'Sí, se envió', val: true, cls: 'pri' }] });
+    if (ok) {
+      const now = new Date().toISOString();
+      for (const s of DATA_STORES) {
+        const set = new Set(data.ids[s]); const recs = (await DB.all(s)).filter(r => set.has(r.id));
+        recs.forEach(r => { r.exportado = true; r.fechaExport = now; });
+        await DB.putMany(s, recs);
+      }
+      S.ultimaExport = now; await saveSettings();
+      toast(`${data.total} registros marcados como exportados ✓`, 'ok');
+    } else toast('No se marcó nada; puedes volver a exportar');
+  } catch (e) { console.error(e); toast('Error al exportar: ' + e.message, 'err'); }
+  finally { await route(); }
+}
+
+/* =====================================================================
+   AJUSTES, RESPALDO Y DATOS DE EJEMPLO
+   ===================================================================== */
+async function renderAjustes() {
+  let persist = '';
+  try { persist = navigator.storage && navigator.storage.persisted ? ((await navigator.storage.persisted()) ? 'Almacenamiento persistente ✓' : 'Almacenamiento no persistente') : ''; } catch (e) { /* nada */ }
+  $('#main').innerHTML = `<h2 class="ttl">Ajustes</h2>
+  <section class="card"><h3>Registrador</h3>
+    <div class="fld"><span>Nombre del registrador (obligatorio)</span><input id="inReg" autocomplete="name" value="${esc(S.registrador)}" placeholder="Nombre y apellido"></div>
+    <button type="button" class="btn pri full" id="btnReg">Guardar nombre</button>
+    <p class="muted">Equipo: <b>${esc(S.dispositivo)}</b> · App v${APP_VERSION}${DB.mem ? ' · <span class="bdg err">Sin almacenamiento: los datos se pierden al cerrar</span>' : ''}<br>${persist}</p>
+  </section>
+  <section class="card"><h3>Listas (una por línea)</h3>
+    <div class="fld"><span>Parcelas</span><textarea id="taPar">${esc(S.parcelas.join('\n'))}</textarea></div>
+    <div class="fld"><span>Material</span><textarea id="taMat">${esc(S.materiales.join('\n'))}</textarea></div>
+    <div class="fld"><span>Estaciones de clima</span><textarea id="taEst" style="min-height:70px">${esc(S.estaciones.join('\n'))}</textarea></div>
+    <div class="row"><button type="button" class="btn pri grow" id="btnListas">Guardar listas</button><button type="button" class="btn sec" id="btnDefLis">Restaurar</button></div>
+  </section>
+  <section class="card"><h3>Límites de tamaño (cm)</h3>
+    <p class="muted">Límite inferior fijo: ${fmtCm(LIM_MIN)} cm. Escribe dónde termina cada clase.</p>
+    <div class="grid3">${fDec('lim1', 'MP hasta', '7')}${fDec('lim2', 'P hasta', '14')}${fDec('lim3', 'M hasta', '21')}</div>
+    <div class="live" id="limPrev"></div>
+    <p class="small">Los clones de la finca maduran con 18–20 cm. Propuesta: 7 / 13 / 17. Cambiar solo antes de iniciar el conteo mensual o al inicio de un ciclo.</p>
+    <div class="row"><button type="button" class="btn pri grow" id="btnLim">Guardar límites</button><button type="button" class="btn sec sm" id="btnLimProp">7 / 13 / 17</button><button type="button" class="btn sec sm" id="btnLimDef">7 / 14 / 21</button></div>
+  </section>
+  <section class="card" style="border-left:5px solid var(--verde)"><h3>Ayuda</h3>
+    <p><b>Cintas por cohorte:</b> en árboles centinela, usar un color distinto cada 14 días para las mazorcas nuevas de 2.5–7 cm; así se conoce su edad.</p>
+  </section>
+  <section class="card"><h3>Respaldo</h3>
+    <p class="muted">Sirve para pasar el padrón de mazorcas marcadas a otro teléfono. Importar fusiona por ID, no duplica.</p>
+    <button type="button" class="btn sec full" id="btnBak" style="margin-bottom:8px">Descargar respaldo completo (JSON)</button>
+    <button type="button" class="btn sec full" id="btnImp">Importar respaldo/padrón (JSON)</button>
+    <input type="file" id="fileImp" accept=".json,application/json" class="hidden">
+  </section>
+  <section class="card"><h3>Datos de ejemplo (demostración)</h3>
+    <p class="muted">Carga ~2 registros por módulo con registrador «EJEMPLO».</p>
+    <div class="row"><button type="button" class="btn gold grow" id="btnEj">Datos de ejemplo</button><button type="button" class="btn danger grow" id="btnEjX">Borrar datos de ejemplo</button></div>
+  </section>
+  <section class="card"><h3>Limpieza</h3>
+    <p class="muted">Borra solo lo ya exportado. Nunca borra lo no exportado, mazorcas vivas, lotes abiertos ni fichas de árbol.</p>
+    <button type="button" class="btn danger full" id="btnClean">Borrar registros ya exportados</button>
+  </section>`;
+  $('#btnReg').addEventListener('click', async () => { const v = $('#inReg').value.trim(); if (!v) { toast('Escribe un nombre', 'err'); return; } S.registrador = v; await saveSettings(); toast('Nombre guardado ✓', 'ok'); });
+  $('#btnListas').addEventListener('click', async () => {
+    const lines = id => [...new Set($(id).value.split('\n').map(x => x.trim()).filter(Boolean))];
+    const p = lines('#taPar'), m = lines('#taMat'), e = lines('#taEst');
+    if (!p.length || !m.length || !e.length) { toast('Ninguna lista puede quedar vacía', 'err'); return; }
+    S.parcelas = p; S.materiales = m; S.estaciones = e; await saveSettings(); toast('Listas guardadas ✓', 'ok');
+  });
+  $('#btnDefLis').addEventListener('click', async () => {
+    if (!await confirmar('Restaurar listas', 'Volver a las listas por defecto?', 'Restaurar')) return;
+    S.parcelas = DEF_PARCELAS.slice(); S.materiales = DEF_MATERIALES.slice(); S.estaciones = DEF_ESTACIONES.slice(); await saveSettings(); route();
+  });
+  // Límites de tamaño
+  const limVals = () => { const v = getVals($('#main')); return ['lim1', 'lim2', 'lim3'].map(k => pnum(v[k])); };
+  const limCheck = l => {
+    if (l.some(n => n === null || Number.isNaN(n))) return 'Escribe los tres límites (números).';
+    if (l.some(n => n <= LIM_MIN || n > 40)) return `Cada límite debe ser mayor que ${fmtCm(LIM_MIN)} y como máximo 40 cm.`;
+    if (!(l[0] < l[1] && l[1] < l[2])) return 'Los límites deben ir de menor a mayor (MP < P < M).';
+    if (l.some(n => Math.round(n * 10) !== n * 10)) return 'Usa como máximo un decimal.';
+    return '';
+  };
+  const limPreview = () => {
+    const l = limVals(); const err = limCheck(l); const el = $('#limPrev'); if (!el) return;
+    if (err) { el.innerHTML = `<span style="color:var(--err)">✖ ${esc(err)}</span>`; return; }
+    const a1 = Math.round((l[0] + 0.1) * 10) / 10, b1 = Math.round((l[1] + 0.1) * 10) / 10;
+    el.textContent = `MP ${fmtCm(LIM_MIN)}–${fmtCm(l[0])} · P ${fmtCm(a1)}–${fmtCm(l[1])} · M ${fmtCm(b1)}–${fmtCm(l[2])} · G >${fmtCm(l[2])} cm`;
+  };
+  setVals($('#main'), { lim1: S.limites[0], lim2: S.limites[1], lim3: S.limites[2] });
+  ctx = { onChange: name => { if (/^lim\d$/.test(name)) limPreview(); } };
+  limPreview();
+  $('#btnLimProp').addEventListener('click', () => { setVals($('#main'), { lim1: 7, lim2: 13, lim3: 17 }); limPreview(); });
+  $('#btnLimDef').addEventListener('click', () => { setVals($('#main'), { lim1: 7, lim2: 14, lim3: 21 }); limPreview(); });
+  $('#btnLim').addEventListener('click', async () => {
+    const l = limVals(); const err = limCheck(l);
+    if (err) { toast(err, 'err'); limPreview(); return; }
+    if (l.every((n, i) => n === S.limites[i])) { toast('Los límites no cambiaron'); return; }
+    const nuevo = limStr([LIM_MIN, ...l]);
+    let mezcla = false;
+    try { mezcla = (await DB.all('conteo')).some(r => r.ronda === S.ultimaRonda && limStr(r.limites) !== nuevo); } catch (e) { /* nada */ }
+    const body = `Nuevos límites: <b>${esc(nuevo)} cm</b>.${mezcla ? `<br><br>⚠ Ya hay árboles contados en la ronda ${esc(S.ultimaRonda)} con otros límites. Cambiar a mitad de ronda mezcla clases distintas.` : ''}<br><br>Cada árbol guarda los límites con que se contó.`;
+    if (!await confirmar('Cambiar límites de tamaño', body, 'Cambiar')) return;
+    S.limites = l; applyLimits(); await saveSettings(); toast(`Límites guardados ✓ (${nuevo})`, 'ok');
+  });
+  $('#btnBak').addEventListener('click', exportBackup);
+  $('#btnImp').addEventListener('click', () => $('#fileImp').click());
+  $('#fileImp').addEventListener('change', e => { const f = e.target.files[0]; if (f) importBackup(f); e.target.value = ''; });
+  $('#btnEj').addEventListener('click', loadExamples);
+  $('#btnEjX').addEventListener('click', clearExamples);
+  $('#btnClean').addEventListener('click', cleanExported);
+}
+async function exportBackup() {
+  const data = {}; for (const s of DATA_STORES) data[s] = await DB.all(s);
+  const obj = { app: 'bayacao-campo', version: APP_VERSION, fecha: new Date().toISOString(), dispositivo: S.dispositivo, registrador: S.registrador, listas: { parcelas: S.parcelas, materiales: S.materiales, estaciones: S.estaciones }, data };
+  const d = new Date();
+  const fname = `Bayacao_respaldo_${S.dispositivo}_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+  const r = await shareOrDownload(new Blob([JSON.stringify(obj)], { type: 'application/json' }), fname, 'Respaldo Bayacao campo');
+  if (r !== 'aborted') toast('Respaldo generado ✓', 'ok');
+}
+async function importBackup(file) {
+  let obj;
+  try { obj = JSON.parse(await file.text()); } catch (e) { toast('El archivo no es un JSON válido', 'err'); return; }
+  if (!obj || obj.app !== 'bayacao-campo' || !obj.data) { toast('No es un respaldo de esta app', 'err'); return; }
+  let add = 0, upd = 0, same = 0;
+  try {
+    for (const s of DATA_STORES) {
+      const inc = Array.isArray(obj.data[s]) ? obj.data[s].filter(r => r && r.id) : [];
+      const curArr = await DB.all(s); const cur = new Map(curArr.map(r => [r.id, r])); const put = []; const delIds = [];
+      if (s === 'fichas') {
+        // Una ficha vigente por árbol: si el árbol ya tiene otra ficha, queda la más reciente
+        const byKey = fichaMapa(curArr);
+        inc.forEach(r => {
+          const k = fKey(r.parcela, r.punto, r.arbol); const c = cur.get(r.id) || byKey.get(k);
+          if (!c) { put.push(r); byKey.set(k, r); add++; }
+          else if ((r.modificado || '') > (c.modificado || '')) { if (c.id !== r.id) delIds.push(c.id); put.push(r); byKey.set(k, r); upd++; }
+          else same++;
+        });
+      } else inc.forEach(r => { const c = cur.get(r.id); if (!c) { put.push(r); add++; } else if ((r.modificado || '') > (c.modificado || '')) { put.push(r); upd++; } else same++; });
+      await DB.putMany(s, put); await DB.delMany(s, delIds);
+    }
+    if (obj.listas) {
+      const u = (a, b) => [...new Set([...(a || []), ...(b || [])])];
+      S.parcelas = u(S.parcelas, obj.listas.parcelas); S.materiales = u(S.materiales, obj.listas.materiales); S.estaciones = u(S.estaciones, obj.listas.estaciones); await saveSettings();
+    }
+  } catch (e) { console.error(e); toast('Error al importar: ' + e.message, 'err'); return; }
+  await modal({ title: 'Importación terminada', body: `<p>Nuevos: <b>${add}</b><br>Actualizados: <b>${upd}</b><br>Sin cambios: <b>${same}</b></p>` });
+  updateStatus();
+}
+async function cleanExported() {
+  const r = await modal({ title: 'Borrar registros ya exportados', danger: true, body: '<p>Escribe <b>BORRAR</b> para confirmar. Los registros no exportados no se tocan.</p>', input: { placeholder: 'BORRAR' }, buttons: [{ label: 'Cancelar', val: false }, { label: 'Borrar', val: true, cls: 'danger' }] });
+  if (!r.val) return;
+  if (r.text.trim() !== 'BORRAR') { toast('Texto incorrecto; no se borró nada', 'err'); return; }
+  let n = 0;
+  const delWhere = async (s, fn) => { const ids = (await DB.all(s)).filter(fn).map(x => x.id); await DB.delMany(s, ids); n += ids.length; };
+  await delWhere('conteo', x => x.exportado); await delWhere('fenologia', x => x.exportado); await delWhere('clima', x => x.exportado);
+  await delWhere('lotes', x => x.exportado && x.estado === 'cerrado');
+  const pods = await DB.all('pods'); const live = new Set(pods.filter(p => p.estado === 0 || !p.exportado).map(p => p.id));
+  const visits = await DB.all('visits');
+  // Mazorcas cerradas y exportadas se borran solo si todas sus visitas ya se exportaron
+  const podOk = pods.filter(p => p.exportado && p.estado !== 0 && visits.filter(v => v.podId === p.id).every(v => v.exportado));
+  podOk.forEach(p => live.delete(p.id));
+  await DB.delMany('pods', podOk.map(p => p.id)); n += podOk.length;
+  await delWhere('visits', v => v.exportado && !live.has(v.podId));
+  toast(`${n} registros exportados borrados`, 'ok'); updateStatus();
+}
+async function loadExamples() {
+  const E = 'EJEMPLO'; const t = today(); const now = new Date().toISOString();
+  const base = () => ({ id: uuid(), creado: now, modificado: now, registrador: E, dispositivo: S.dispositivo, exportado: false, fechaExport: null });
+  const ronda = t.slice(0, 7);
+  const c1 = Object.assign(base(), { ronda, fecha: t, parcela: 'P01.06', punto: 1, arbol: 1, material: 'ICS-95', mp: 4, p: 6, m: 3, g: 2, mad: 1, negra: 1, ratas: 0, pajaros: 1, insectos: 0, otra: 0, cherSanos: 1, cherMarch: 2, flor: 2, brot: 1, defol: 1, muerteReg: 0, vigor: 2, sobre25: 3, nota: 'Ejemplo de demostración', lat: 18.8456, lon: -69.6251, prec: 6, prod: 9, improd: 2, fallas: 1 });
+  const c2 = Object.assign(base(), { ronda, fecha: t, parcela: 'P01.06', punto: 1, arbol: 2, material: 'UF-677', mp: 2, p: 3, m: 5, g: 4, mad: 2, negra: 0, ratas: 1, pajaros: 0, insectos: 1, otra: 0, cherSanos: 2, cherMarch: 1, flor: 3, brot: 0, defol: 0, muerteReg: 1, vigor: 3, sobre25: null, nota: '', lat: 18.8456, lon: -69.6251, prec: 6, prod: 9, improd: 2, fallas: 1 });
+  const pods = await DB.all('pods'); const n0 = Math.max(0, ...pods.filter(p => p.parcela === 'P01.06' && p.arbol === 3).map(p => p.n || 0));
+  const p1 = Object.assign(base(), { codigo: podCode('P01.06', 3, n0 + 1), n: n0 + 1, parcela: 'P01.06', arbol: 3, material: 'ICS-95', estratoAltura: 'Bajo', clase: 'P', largo: 9.5, diametro: 4.2, fechaMarcaje: addDays(t, -20), estado: 0, causa: '', fechaUltimo: null, largoUltimo: null });
+  const p2 = Object.assign(base(), { codigo: podCode('P01.06', 3, n0 + 2), n: n0 + 2, parcela: 'P01.06', arbol: 3, material: 'ICS-95', estratoAltura: 'Alto', clase: 'MP', largo: 5.0, diametro: null, fechaMarcaje: addDays(t, -20), estado: 0, causa: '', fechaUltimo: addDays(t, -6), largoUltimo: 8.0 });
+  const v1 = Object.assign(base(), { podId: p2.id, codigo: p2.codigo, parcela: 'P01.06', arbol: 3, fecha: addDays(t, -6), estado: 0, causa: '', largo: 8.0, prev: { estado: 0, causa: '', fechaUltimo: null, largoUltimo: null } });
+  const f1 = Object.assign(base(), { fecha: addDays(t, -6), parcela: 'P01.06', arbol: 3, origen: 'PSM', cherSanos: 1, cherMarch: 1, flor: 1, brot: 1, defol: 0, muerteReg: 0, vigor: 2 });
+  const est = S.estaciones[0] || DEF_ESTACIONES[0];
+  const k1 = Object.assign(base(), { estacion: est, fecha: addDays(t, -2), hora: '07:00', lluvia: 12.5, tmax: 31, tmin: 22, hr: 84, eventos: ['tormenta'], nota: 'Ejemplo' });
+  const k2 = Object.assign(base(), { estacion: est, fecha: addDays(t, -1), hora: '07:00', lluvia: 0, tmax: 33, tmin: 21.5, hr: 76, eventos: [], nota: '' });
+  const l1 = Object.assign(base(), { codigo: 'EJ-L001', parcelas: ['P01.06', 'P01.07'], fechaEntrada: addDays(t, -12), kgBaba: 420, fechaSalida: addDays(t, -2), kgSeco: 155, humedad: 7, factor: 0.369, estado: 'cerrado' });
+  const l2 = Object.assign(base(), { codigo: 'EJ-L002', parcelas: ['P02.03'], fechaEntrada: addDays(t, -3), kgBaba: 380, fechaSalida: null, kgSeco: null, humedad: null, factor: null, estado: 'abierto' });
+  c1.limites = curLim(); c2.limites = curLim();
+  await DB.putMany('conteo', [c1, c2]); await DB.putMany('pods', [p1, p2]); await DB.put('visits', v1); await DB.put('fenologia', f1);
+  await DB.putMany('clima', [k1, k2]); await DB.putMany('lotes', [l1, l2]);
+  // Fichas de los árboles 1 y 2 del ejemplo (solo si el árbol aún no tiene ficha)
+  const fv1 = { inmaduro: 'Rojo/morado', maduro: 'Rojo anaranjado', forma: 'Cundeamor', superficie: 'Rugosa / verrugosa', punta: 'Aguda', cuello: 'Sí', largo1: 19, largo2: 19.6, largo3: 19.3, diametro: 7.8, semilla: 'Morado', nSemillas: 34 };
+  const fv2 = { inmaduro: 'Verde', maduro: 'Amarillo', forma: 'Cundeamor', superficie: 'Ligeramente rugosa', punta: 'Obtusa', cuello: 'Sí', largo1: 20.1, largo2: 20.6, largo3: '', diametro: 10.1, semilla: 'Morado claro / rosado', nSemillas: 36 };
+  const mkF = (arbol, fv, clon, conf, nota) => { const m = fichaMedidas(fv); return Object.assign(base(), { parcela: 'P01.06', punto: 1, arbol, fecha: t }, fv, { largo3: pnum(fv.largo3), largoProm: m.prom, ld: m.ld, sugerido: sugTop(fv), clon, confianza: conf, nota }); };
+  const fichas = await DB.all('fichas');
+  const fn = [mkF(1, fv1, 'ICS-95', 'Media', 'Ejemplo de demostración'), mkF(2, fv2, 'UF-677', 'Alta', '')].filter(f => !fichaDe(fichas, f.parcela, f.punto, f.arbol));
+  await DB.putMany('fichas', fn);
+  toast('Datos de ejemplo cargados ✓', 'ok'); updateStatus();
+}
+async function clearExamples() {
+  if (!await confirmar('Borrar datos de ejemplo', 'Se borrarán todos los registros con registrador «EJEMPLO».', 'Borrar', true)) return;
+  let n = 0;
+  for (const s of DATA_STORES) { const ids = (await DB.all(s)).filter(r => r.registrador === 'EJEMPLO').map(r => r.id); await DB.delMany(s, ids); n += ids.length; }
+  toast(`${n} registros de ejemplo borrados`, 'ok'); updateStatus();
+}
+
+/* =====================================================================
+   ARRANQUE
+   ===================================================================== */
+async function init() {
+  await DB.open();
+  await loadSettings();
+  try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) { /* nada */ }
+  bindGlobalEvents();
+  window.addEventListener('hashchange', route);
+  window.addEventListener('pagehide', () => { saveDraft(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraft(); });
+  if (!location.hash) history.replaceState(null, '', '#/inicio');
+  await route();
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+    navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW no registrado', e));
+  }
+}
+init().catch(e => { console.error(e); $('#main').innerHTML = `<div class="card"><p class="msg err">No se pudo iniciar la app: ${esc(e.message)}</p></div>`; });
+</script>
+</body>
+</html>
