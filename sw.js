@@ -1,6 +1,6 @@
 /* Service worker — Bayacao Registro de Campo
    Estrategia cache-first. Cambiar CACHE al publicar una versión nueva. */
-const CACHE = 'bayacao-v4'; // v1.1: ficha del árbol, límites de tamaño
+const CACHE = 'bayacao-v5'; // v1.1: ficha del árbol, límites de tamaño
 const ASSETS = [
   './',
   './index.html',
