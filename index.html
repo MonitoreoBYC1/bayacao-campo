@@ -25,6 +25,13 @@ button{cursor:pointer;touch-action:manipulation}
 header.top{position:sticky;top:0;z-index:20;background:var(--choco);color:var(--blanco);display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top))}
 header.top .home{background:none;border:0;color:var(--blanco);font-weight:700;font-size:17px;padding:6px 4px;min-height:44px;text-align:left;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 header.top .home b{letter-spacing:.06em}
+header.top .back{background:var(--dorado);border:0;color:var(--choco);font-weight:700;font-size:16px;border-radius:10px;padding:8px 12px;min-height:44px;white-space:nowrap}
+.guia{border-left:5px solid var(--dorado)}
+.guia ol{margin:6px 0 0 20px;padding:0}
+.guia li{margin:4px 0}
+.tile.main{grid-column:1/-1;min-height:96px;border-color:var(--choco);border-width:3px}
+.tile.main b{font-size:21px}
+.tile.opc{grid-column:1/-1;min-height:64px;opacity:.85}
 .net{font-size:14px;font-weight:700;border-radius:999px;padding:6px 10px;white-space:nowrap;border:2px solid var(--blanco)}
 .net.on{background:var(--verde);border-color:var(--verde)}
 .net.off{background:var(--blanco);color:var(--choco)}
@@ -143,12 +150,13 @@ h4{color:var(--cacao);font-size:16px;margin:14px 0 8px;border-top:1px solid var(
 </head>
 <body>
 <header class="top">
+  <button class="back" id="hdrBack" type="button" hidden>‹ Inicio</button>
   <button class="home" id="hdrHome" aria-label="Ir al inicio"><b>BAYACAO</b> · Registro de campo</button>
   <span class="net off" id="net">Sin señal</span>
 </header>
 <button id="banner" type="button"></button>
 <main id="main"><p class="muted">Cargando…</p></main>
-<footer class="pie">Grupo Bayacao – Uso interno · v1.1</footer>
+<footer class="pie">Grupo Bayacao – Uso interno · v1.2</footer>
 <div id="bar"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -156,11 +164,11 @@ h4{color:var(--cacao);font-size:16px;margin:14px 0 8px;border-top:1px solid var(
 <script>
 'use strict';
 /* =====================================================================
-   Bayacao · Registro de campo (PWA sin conexión) — v1.1
+   Bayacao · Registro de campo (PWA sin conexión) — v1.2
    Un solo archivo: utilidades, base de datos, módulos, exportación.
    ===================================================================== */
 
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.2';
 const DATA_STORES = ['conteo', 'pods', 'visits', 'fenologia', 'clima', 'lotes', 'fichas'];
 const DB_VERSION = 2; // v1.1: nuevo almacén «fichas» (los existentes no se tocan)
 const KEY_STORES = ['settings', 'drafts'];
@@ -467,6 +475,7 @@ function bindGlobalEvents() {
     if (cb) { cb.classList.toggle('sel'); formChanged(cb.parentElement.dataset.name); }
   });
   $('#hdrHome').addEventListener('click', () => go('#/inicio'));
+  $('#hdrBack').addEventListener('click', () => go('#/inicio'));
   $('#banner').addEventListener('click', () => go('#/exportar'));
   window.addEventListener('online', updateStatus);
   window.addEventListener('offline', updateStatus);
@@ -509,6 +518,7 @@ function route() {
   routing = routing.then(async () => {
     clearTimeout(draftT); await saveDraft();
     const { path, params } = parseHash();
+    $('#hdrBack').hidden = path === 'inicio';
     ctx = {}; pendingWarn = null; setBar('');
     $('#main').innerHTML = '';
     try { await ROUTES[path](params); } catch (e) { console.error(e); $('#main').innerHTML = `<div class="card"><p class="msg err">Error al abrir la pantalla: ${esc(e.message)}</p></div>`; }
@@ -530,12 +540,17 @@ async function renderInicio() {
   const hoyC = conteo.filter(r => r.fecha === today()).length;
   $('#main').innerHTML = `
     ${!S.registrador ? `<div class="card"><p class="msg warn">⚠ Falta tu nombre de registrador.</p><button class="btn pri full" data-go="#/ajustes">Ir a Ajustes</button></div>` : `<p class="muted">Registrador: <b>${esc(S.registrador)}</b> · Equipo ${esc(S.dispositivo)}</p>`}
+    ${conteo.length ? '' : `<div class="card guia"><h3>Cómo registrar</h3><ol>
+      <li><b>Conteo mensual:</b> elige parcela y punto, y cuenta cada árbol fijo (1 a 8).</li>
+      <li><b>Ficha del árbol:</b> una sola vez por árbol, para saber su clon.</li>
+      <li><b>Clima</b> cada día a las 07:00 y <b>Baba → seco</b> por lote.</li>
+      <li>Al volver al wifi: <b>Exportar Excel</b>.</li></ol></div>`}
     <div class="home-grid">
-      <button class="tile" data-go="#/conteo"><b>Conteo de mazorcas</b><small>Por ronda, punto y árbol</small><span class="bdg">${hoyC} árboles hoy</span></button>
-      <button class="tile" data-go="#/psm"><b>Mazorcas marcadas (PSM)</b><small>${vivas} vivas</small>${venc ? `<span class="bdg warn">⚠ ${venc} vencidas</span>` : '<span class="bdg">Al día</span>'}</button>
+      <button class="tile main" data-go="#/conteo"><b>Conteo mensual de mazorcas</b><small>Árboles fijos · parcela, punto y árbol</small><span class="bdg">${hoyC} árboles hoy</span></button>
+      <button class="tile wide" data-go="#/ficha"><b>Ficha del árbol</b><small>Rasgos del fruto · clon</small><span class="bdg">${fc.con} / ${fc.total} árboles con ficha</span></button>
       <button class="tile clima" data-go="#/clima"><b>Clima diario</b><small>Lluvia y temperatura</small><span class="bdg">${clima.filter(c => c.fecha === today()).length ? '✓ Hoy registrado' : 'Hoy pendiente'}</span></button>
       <button class="tile" data-go="#/lotes"><b>Baba → seco</b><small>Conversión por lote</small><span class="bdg">${abiertos} lotes abiertos</span></button>
-      <button class="tile wide" data-go="#/ficha"><b>Ficha del árbol</b><small>Rasgos del fruto · clon</small><span class="bdg">${fc.con} / ${fc.total} árboles con ficha</span></button>
+      <button class="tile opc" data-go="#/psm"><b>Mazorcas marcadas (opcional)</b><small>Solo para un estudio de calibración · ${vivas} vivas</small>${venc ? `<span class="bdg warn">⚠ ${venc} vencidas</span>` : ''}</button>
     </div>
     <button class="btn gold full" data-go="#/exportar" style="margin-bottom:10px">Exportar Excel ${pend ? `(${pend} sin enviar)` : ''}</button>
     <div class="row"><button class="btn sec grow" data-go="#/registros">Registros</button><button class="btn sec grow" data-go="#/ajustes">Ajustes</button></div>`;
@@ -556,7 +571,7 @@ async function renderConteo(params) {
   <form id="frm" autocomplete="off" onsubmit="return false">
     <section class="card">
       <h3>Visita · punto de muestreo</h3>
-      <div class="grid2">${fText('ronda', 'Ronda', 'AAAA-MM', 'list="rondasDL"')}${fDate('fecha', 'Fecha')}</div>
+      <div class="grid2">${fText('ronda', 'Ronda (mes)', 'AAAA-MM', 'list="rondasDL"')}${fDate('fecha', 'Fecha')}</div>
       <datalist id="rondasDL"></datalist>
       ${fSelect('parcela', 'Parcela', S.parcelas)}
       ${stepper('punto', 'Punto # (1–20)', 1, 20)}
@@ -1664,7 +1679,7 @@ async function renderAjustes() {
     <p class="muted">Borra solo lo ya exportado. Nunca borra lo no exportado, mazorcas vivas, lotes abiertos ni fichas de árbol.</p>
     <button type="button" class="btn danger full" id="btnClean">Borrar registros ya exportados</button>
   </section>`;
-  $('#btnReg').addEventListener('click', async () => { const v = $('#inReg').value.trim(); if (!v) { toast('Escribe un nombre', 'err'); return; } S.registrador = v; await saveSettings(); toast('Nombre guardado ✓', 'ok'); });
+  $('#btnReg').addEventListener('click', async () => { const v = $('#inReg').value.trim(); if (!v) { toast('Escribe un nombre', 'err'); return; } S.registrador = v; await saveSettings(); toast('Nombre guardado ✓', 'ok'); go('#/inicio'); });
   $('#btnListas').addEventListener('click', async () => {
     const lines = id => [...new Set($(id).value.split('\n').map(x => x.trim()).filter(Boolean))];
     const p = lines('#taPar'), m = lines('#taMat'), e = lines('#taEst');
